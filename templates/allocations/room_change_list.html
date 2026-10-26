@@ -1,0 +1,181 @@
+{% extends 'base.html' %}
+
+{% block title %}Room Change Requests - Smart Hostel{% endblock %}
+{% block header_title %}Room Change Requests Workflow{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+
+    <!-- Header Card -->
+    <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+                <h2 class="text-lg font-bold text-slate-900">Room Change Requests</h2>
+                <p class="text-xs text-slate-500">Multi-tier workflow: Student Request &rarr; Warden Assessment &rarr; Admin Bed Transfer</p>
+            </div>
+            {% if user.is_student_user and user.active_allotment %}
+            <a href="{% url 'room_change_request_create' %}" class="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-sm transition-colors">
+                <i class="fa-solid fa-plus"></i> Request Room Change
+            </a>
+            {% endif %}
+        </div>
+
+        <!-- Filter Bar -->
+        <form method="GET" class="flex flex-col sm:flex-row items-center gap-3 pt-3 border-t border-slate-100 text-xs">
+            <div class="flex-1 w-full sm:w-auto">
+                <select name="status" onchange="this.form.submit()" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500">
+                    <option value="">All Statuses</option>
+                    {% for val, label in status_choices %}
+                    <option value="{{ val }}" {% if status_filter == val %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            {% if status_filter %}
+            <a href="{% url 'room_change_list' %}" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg font-medium text-center">
+                Clear Filter
+            </a>
+            {% endif %}
+        </form>
+    </div>
+
+    <!-- Requests Table -->
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+                <thead class="bg-slate-50 text-slate-500 uppercase tracking-wider border-b border-slate-200 font-semibold">
+                    <tr>
+                        <th class="py-3 px-4">Request #</th>
+                        <th class="py-3 px-4">Student</th>
+                        <th class="py-3 px-4">Current Allocation</th>
+                        <th class="py-3 px-4">Reason & Preferred</th>
+                        <th class="py-3 px-4">Warden Recommendation</th>
+                        <th class="py-3 px-4">Status</th>
+                        <th class="py-3 px-4">Date</th>
+                        <th class="py-3 px-4 text-right">Action</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 text-slate-700">
+                    {% for req in page_obj %}
+                    <tr class="hover:bg-slate-50/80 transition-colors">
+                        <td class="py-3.5 px-4 font-mono font-bold text-slate-900">
+                            {{ req.request_code }}
+                        </td>
+
+                        <td class="py-3.5 px-4">
+                            <div class="flex items-center gap-2.5">
+                                {% if req.student.profile_pic %}
+                                <img src="{{ req.student.profile_pic.url }}" alt="{{ req.student.username }}" class="w-7 h-7 rounded-full object-cover">
+                                {% else %}
+                                <div class="w-7 h-7 rounded-full bg-slate-200 text-slate-700 font-bold flex items-center justify-center text-[10px]">
+                                    {{ req.student.initials }}
+                                </div>
+                                {% endif %}
+                                <div>
+                                    <strong class="text-slate-900 block font-semibold">{{ req.student.get_full_name|default:req.student.username }}</strong>
+                                    <span class="text-slate-400 font-mono text-[10px]">{{ req.student.registration_no|default:req.student.username }}</span>
+                                </div>
+                            </div>
+                        </td>
+
+                        <td class="py-3.5 px-4">
+                            <span class="font-bold text-slate-800 block">Room {{ req.current_room.room_number }}</span>
+                            <span class="text-[11px] text-slate-500">{{ req.current_bed.bed_code }} &bull; {{ req.current_room.block.block_name }}</span>
+                        </td>
+
+                        <td class="py-3.5 px-4 max-w-xs">
+                            <span class="font-semibold text-slate-800 block">{{ req.get_reason_category_display }}</span>
+                            <span class="text-[11px] text-slate-500 block truncate">
+                                Pref: {% if req.preferred_room %}Room {{ req.preferred_room.room_number }}{% else %}Any{% endif %}
+                            </span>
+                        </td>
+
+                        <td class="py-3.5 px-4">
+                            {% if req.warden_recommendation == 'RECOMMENDED' %}
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">
+                                <i class="fa-solid fa-check mr-1"></i> Recommended
+                            </span>
+                            {% elif req.warden_recommendation == 'NOT_RECOMMENDED' %}
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-800">
+                                <i class="fa-solid fa-xmark mr-1"></i> Not Recommended
+                            </span>
+                            {% else %}
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-500">
+                                Pending Review
+                            </span>
+                            {% endif %}
+                        </td>
+
+                        <td class="py-3.5 px-4">
+                            {% if req.status == 'COMPLETED' %}
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800">
+                                Transferred
+                            </span>
+                            {% elif req.status == 'APPROVED' %}
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-indigo-100 text-indigo-800">
+                                Approved
+                            </span>
+                            {% elif req.status == 'REJECTED' %}
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-rose-100 text-rose-800">
+                                Rejected
+                            </span>
+                            {% elif req.status == 'WARDEN_RECOMMENDED' %}
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-blue-100 text-blue-800">
+                                Warden Verified
+                            </span>
+                            {% else %}
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800">
+                                Submitted
+                            </span>
+                            {% endif %}
+                        </td>
+
+                        <td class="py-3.5 px-4 text-slate-500 font-mono text-[11px]">
+                            {{ req.created_at|date:"M d, Y" }}
+                        </td>
+
+                        <td class="py-3.5 px-4 text-right">
+                            <a href="{% url 'room_change_detail' req.pk %}" class="px-3 py-1 bg-slate-800 hover:bg-slate-900 text-white rounded-lg text-xs font-semibold shadow-xs transition-colors">
+                                {% if user.is_student_user %}View{% else %}Process{% endif %}
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="py-12 text-center text-slate-400">
+                            <i class="fa-solid fa-arrows-rotate text-3xl mb-2 text-slate-300 block"></i>
+                            No room change requests found.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Pagination -->
+    {% if page_obj.has_other_pages %}
+    <div class="flex items-center justify-between bg-white px-5 py-3 rounded-2xl border border-slate-200 text-xs">
+        <div>
+            <span class="text-slate-500">
+                Page <strong class="text-slate-800">{{ page_obj.number }}</strong> of <strong class="text-slate-800">{{ page_obj.paginator.num_pages }}</strong>
+            </span>
+        </div>
+        <div class="flex items-center gap-1">
+            {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}&status={{ status_filter }}"
+               class="px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-700">
+                &larr; Previous
+            </a>
+            {% endif %}
+            {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}&status={{ status_filter }}"
+               class="px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-700">
+                Next &rarr;
+            </a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}

@@ -1,0 +1,204 @@
+{% extends 'base.html' %}
+
+{% block title %}Student Directory - Smart Hostel{% endblock %}
+{% block header_title %}Student Directory & Resident Dossiers{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+
+    <!-- Top Card / Filter Bar -->
+    <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+                <h2 class="text-lg font-bold text-slate-900">Student Directory</h2>
+                <p class="text-xs text-slate-500">Search, filter, and inspect student resident profiles, academic records, and allocated rooms</p>
+            </div>
+            <div class="flex items-center gap-2">
+                <a href="{% url 'export_students_csv' %}" class="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold transition-colors flex items-center gap-1.5">
+                    <i class="fa-solid fa-file-csv text-emerald-600"></i> Export CSV
+                </a>
+                <a href="{% url 'application_list' %}" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-semibold transition-colors flex items-center gap-1.5 shadow-sm">
+                    <i class="fa-solid fa-user-clock"></i> New Applications
+                </a>
+            </div>
+        </div>
+
+        <!-- Search & Filter Controls -->
+        <form method="GET" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-3 border-t border-slate-100 text-xs">
+            <div class="relative sm:col-span-2">
+                <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-slate-400"></i>
+                <input type="text" name="q" value="{{ search_query }}" placeholder="Search by name, reg #, CNIC, phone, or username..."
+                       class="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500">
+            </div>
+
+            <div>
+                <select name="department" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500">
+                    <option value="">All Departments</option>
+                    {% for d in departments %}
+                    <option value="{{ d }}" {% if dept_filter == d %}selected{% endif %}>{{ d }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <select name="status" class="flex-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500">
+                    <option value="">All Application Statuses</option>
+                    <option value="PENDING" {% if status_filter == 'PENDING' %}selected{% endif %}>Pending</option>
+                    <option value="APPROVED" {% if status_filter == 'APPROVED' %}selected{% endif %}>Approved</option>
+                    <option value="ALLOCATED" {% if status_filter == 'ALLOCATED' %}selected{% endif %}>Allocated</option>
+                    <option value="REJECTED" {% if status_filter == 'REJECTED' %}selected{% endif %}>Rejected</option>
+                </select>
+
+                <button type="submit" class="px-4 py-2 bg-slate-800 hover:bg-slate-900 text-white font-semibold rounded-lg transition-colors">
+                    Filter
+                </button>
+                {% if search_query or dept_filter or status_filter %}
+                <a href="{% url 'student_directory' %}" class="px-2.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg font-medium">
+                    Reset
+                </a>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+
+    <!-- Students Directory Table -->
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+                <thead class="bg-slate-50 text-slate-500 uppercase tracking-wider border-b border-slate-200 font-semibold">
+                    <tr>
+                        <th class="py-3 px-4">Student</th>
+                        <th class="py-3 px-4">University Credentials</th>
+                        <th class="py-3 px-4">Room & Bed Allocation</th>
+                        <th class="py-3 px-4">Contact Info</th>
+                        <th class="py-3 px-4">Admission Status</th>
+                        <th class="py-3 px-4 text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 text-slate-700">
+                    {% for s in page_obj %}
+                    <tr class="hover:bg-slate-50/80 transition-colors">
+                        <!-- Student Photo & Name -->
+                        <td class="py-3.5 px-4">
+                            <div class="flex items-center gap-3">
+                                {% if s.profile_pic %}
+                                <img src="{{ s.profile_pic.url }}" alt="{{ s.username }}" class="w-10 h-10 rounded-full object-cover border border-slate-200 shadow-xs">
+                                {% else %}
+                                <div class="w-10 h-10 rounded-full bg-slate-200 text-slate-700 font-bold flex items-center justify-center text-xs">
+                                    {{ s.initials }}
+                                </div>
+                                {% endif %}
+                                <div>
+                                    <a href="{% url 'student_detail_view' s.pk %}" class="text-slate-900 hover:text-emerald-600 font-bold text-sm block">
+                                        {{ s.get_full_name|default:s.username }}
+                                    </a>
+                                    <span class="text-slate-400 font-mono text-[11px]">@{{ s.username }}</span>
+                                </div>
+                            </div>
+                        </td>
+
+                        <!-- Academic Details -->
+                        <td class="py-3.5 px-4">
+                            <span class="font-semibold text-slate-800 block">{{ s.department|default:"Dept not assigned" }}</span>
+                            <span class="text-slate-500 text-[11px]">
+                                {% if s.semester %}Sem {{ s.semester }} &bull; {% endif %}Reg: <span class="font-mono text-slate-700 font-bold">{{ s.registration_no|default:"N/A" }}</span>
+                            </span>
+                        </td>
+
+                        <!-- Room & Bed -->
+                        <td class="py-3.5 px-4">
+                            {% if s.active_allotment %}
+                            <div class="flex items-center gap-2">
+                                <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+                                <div>
+                                    <strong class="text-slate-900 font-bold block text-xs">Room {{ s.active_allotment.room.room_number }}</strong>
+                                    <span class="text-[11px] text-slate-500">{{ s.active_allotment.bed.bed_code }} &bull; {{ s.active_allotment.room.block.block_name }}</span>
+                                </div>
+                            </div>
+                            {% else %}
+                            <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-slate-100 text-slate-500">
+                                Not Allocated
+                            </span>
+                            {% endif %}
+                        </td>
+
+                        <!-- Contact -->
+                        <td class="py-3.5 px-4">
+                            <span class="text-slate-800 block font-medium"><i class="fa-solid fa-phone text-[10px] text-slate-400 mr-1"></i> {{ s.phone_number|default:"N/A" }}</span>
+                            <span class="text-slate-500 text-[11px] font-mono"><i class="fa-solid fa-id-card text-[10px] text-slate-400 mr-1"></i> {{ s.cnic_or_id|default:"N/A" }}</span>
+                        </td>
+
+                        <!-- Status -->
+                        <td class="py-3.5 px-4">
+                            {% if s.application_status == 'ALLOCATED' %}
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-indigo-100 text-indigo-800">
+                                Resident
+                            </span>
+                            {% elif s.application_status == 'APPROVED' %}
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800">
+                                Approved
+                            </span>
+                            {% elif s.application_status == 'PENDING' %}
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800">
+                                Pending
+                            </span>
+                            {% else %}
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-rose-100 text-rose-800">
+                                Rejected
+                            </span>
+                            {% endif %}
+                        </td>
+
+                        <!-- Actions -->
+                        <td class="py-3.5 px-4 text-right">
+                            <div class="flex items-center justify-end gap-2">
+                                <a href="{% url 'student_detail_view' s.pk %}" class="px-3 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold transition-colors">
+                                    Dossier
+                                </a>
+                                {% if s.application_status == 'APPROVED' and not s.active_allotment %}
+                                <a href="{% url 'allocation_create' %}?student={{ s.pk }}" class="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold shadow-xs transition-colors">
+                                    Allot
+                                </a>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="py-12 text-center text-slate-400">
+                            No students found matching your criteria.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Pagination -->
+    {% if page_obj.has_other_pages %}
+    <div class="flex items-center justify-between bg-white px-5 py-3 rounded-2xl border border-slate-200 text-xs">
+        <div>
+            <span class="text-slate-500">
+                Page <strong class="text-slate-800">{{ page_obj.number }}</strong> of <strong class="text-slate-800">{{ page_obj.paginator.num_pages }}</strong>
+            </span>
+        </div>
+        <div class="flex items-center gap-1">
+            {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}&q={{ search_query }}&department={{ dept_filter }}&status={{ status_filter }}"
+               class="px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-700">
+                &larr; Previous
+            </a>
+            {% endif %}
+            {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}&q={{ search_query }}&department={{ dept_filter }}&status={{ status_filter }}"
+               class="px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-700">
+                Next &rarr;
+            </a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}

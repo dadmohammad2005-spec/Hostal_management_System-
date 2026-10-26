@@ -1,0 +1,218 @@
+{% extends 'base.html' %}
+
+{% block title %}Warden Operations Dashboard - Ali Hall Hostel | IUB{% endblock %}
+{% block header_title %}Hostel Warden Operational Hub{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+
+    <!-- Warden Profile & Scope Card -->
+    <div class="bg-gradient-to-r from-indigo-900 via-slate-900 to-slate-950 text-white rounded-3xl p-6 shadow-md border border-slate-800 flex flex-col md:flex-row items-center justify-between gap-4">
+        <div class="flex items-center space-x-4">
+            <div class="w-14 h-14 rounded-2xl bg-indigo-600/30 border border-indigo-500/50 flex items-center justify-center text-indigo-300 text-2xl font-bold">
+                <i class="fa-solid fa-user-shield"></i>
+            </div>
+            <div>
+                <div class="flex items-center space-x-2">
+                    <h2 class="text-xl font-bold text-white">{{ warden.get_full_name|default:warden.username }}</h2>
+                    <span class="text-[11px] font-bold px-2 py-0.5 rounded-full bg-indigo-500/30 text-indigo-300 border border-indigo-500/40">
+                        {{ warden.warden_designation|default:"Hostel Warden" }}
+                    </span>
+                </div>
+                <p class="text-xs text-slate-400 mt-0.5">
+                    Assigned Jurisdiction: 
+                    <strong class="text-emerald-400">
+                        {% if assigned_block %}{{ assigned_block.block_name }} ({{ assigned_block.hostel.name }}){% else %}Ali Hall (All Blocks){% endif %}
+                    </strong>
+                </p>
+            </div>
+        </div>
+        <div class="flex items-center gap-2">
+            <a href="{% url 'room_inventory' %}" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition-colors">
+                <i class="fa-solid fa-door-open me-1"></i> Rooms & Occupancy
+            </a>
+            <a href="{% url 'student_directory' %}" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-bold border border-slate-700 transition-colors">
+                <i class="fa-solid fa-users me-1"></i> Student Residents
+            </a>
+        </div>
+    </div>
+
+    <!-- Analytics Stat Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        <div class="bg-white p-5 rounded-3xl border border-slate-200/80 shadow-xs">
+            <span class="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-2">Assigned Rooms</span>
+            <div class="flex items-baseline space-x-2">
+                <span class="text-3xl font-extrabold text-slate-900">{{ total_rooms }}</span>
+                <span class="text-xs text-slate-500 font-medium">Rooms in Wing</span>
+            </div>
+            <p class="text-xs text-slate-400 mt-2">Capacity: 2 students per room</p>
+        </div>
+
+        <div class="bg-white p-5 rounded-3xl border border-slate-200/80 shadow-xs">
+            <span class="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-2">Occupied Beds</span>
+            <div class="flex items-baseline space-x-2">
+                <span class="text-3xl font-extrabold text-indigo-700">{{ occupied_beds }}</span>
+                <span class="text-xs text-emerald-600 font-bold">Active Residents</span>
+            </div>
+            <p class="text-xs text-slate-400 mt-2">Available: <strong class="text-emerald-700">{{ available_beds }} beds</strong></p>
+        </div>
+
+        <div class="bg-white p-5 rounded-3xl border border-slate-200/80 shadow-xs">
+            <span class="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-2">Pending Complaints</span>
+            <div class="flex items-baseline space-x-2">
+                <span class="text-3xl font-extrabold text-rose-600">{{ pending_complaints_count }}</span>
+                <span class="text-xs text-rose-700 font-bold bg-rose-50 px-2 py-0.5 rounded-full">Requires Attention</span>
+            </div>
+            <p class="text-xs text-slate-400 mt-2">Room & floor maintenance issues</p>
+        </div>
+
+        <div class="bg-white p-5 rounded-3xl border border-slate-200/80 shadow-xs">
+            <span class="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-2">Room Change Reviews</span>
+            <div class="flex items-baseline space-x-2">
+                <span class="text-3xl font-extrabold text-cyan-600">{{ pending_room_changes_count }}</span>
+                <span class="text-xs text-cyan-700 font-bold bg-cyan-50 px-2 py-0.5 rounded-full">Awaiting Assessment</span>
+            </div>
+            <p class="text-xs text-slate-400 mt-2">Student roommate / room transfer requests</p>
+        </div>
+    </div>
+
+    <!-- Active Operational Queues Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+        <!-- Queue 1: Complaints to Attend -->
+        <div class="bg-white rounded-3xl border border-slate-200/80 shadow-xs p-6">
+            <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center space-x-2">
+                    <div class="w-8 h-8 rounded-xl bg-rose-100 text-rose-700 flex items-center justify-center text-sm font-bold">
+                        <i class="fa-solid fa-wrench"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-base font-bold text-slate-900">Maintenance Tickets Requiring Action</h3>
+                        <p class="text-xs text-slate-500">Update status, add staff remarks, and resolve</p>
+                    </div>
+                </div>
+                <a href="{% url 'complaint_list' %}" class="text-xs font-bold text-rose-700 hover:underline">View All &rarr;</a>
+            </div>
+
+            {% if recent_complaints %}
+            <div class="divide-y divide-slate-100">
+                {% for cmp in recent_complaints %}
+                <div class="py-3 flex items-center justify-between gap-3">
+                    <div class="min-w-0">
+                        <div class="flex items-center space-x-2">
+                            <span class="text-xs font-bold text-slate-900 truncate">{{ cmp.title }}</span>
+                            <span class="text-[10px] font-bold px-1.5 py-0.5 rounded-md
+                                {% if cmp.priority == 'URGENT' %}bg-rose-100 text-rose-800
+                                {% elif cmp.priority == 'HIGH' %}bg-amber-100 text-amber-800
+                                {% else %}bg-slate-100 text-slate-700{% endif %}">
+                                {{ cmp.get_priority_display }}
+                            </span>
+                        </div>
+                        <p class="text-xs text-slate-500 mt-0.5">
+                            {{ cmp.complaint_ref }} &bull; Room {{ cmp.room_number|default:"-" }} &bull; {{ cmp.get_category_display }}
+                        </p>
+                    </div>
+                    <div class="flex items-center space-x-2 shrink-0">
+                        <span class="inline-block text-[11px] font-bold px-2 py-0.5 rounded-full 
+                            {% if cmp.status == 'RESOLVED' %}bg-emerald-100 text-emerald-800
+                            {% elif cmp.status == 'IN_PROGRESS' %}bg-blue-100 text-blue-800
+                            {% else %}bg-amber-100 text-amber-800{% endif %}">
+                            {{ cmp.get_status_display }}
+                        </span>
+                        <a href="{% url 'complaint_detail' cmp.pk %}" class="px-3 py-1 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-lg text-xs font-bold transition-colors">
+                            Update
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="py-8 text-center text-slate-400">
+                <i class="fa-solid fa-circle-check text-3xl mb-2 text-emerald-500"></i>
+                <p class="text-xs">All complaints in your block are resolved</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Queue 2: Room Change Requests Pending Warden Recommendation -->
+        <div class="bg-white rounded-3xl border border-slate-200/80 shadow-xs p-6">
+            <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center space-x-2">
+                    <div class="w-8 h-8 rounded-xl bg-cyan-100 text-cyan-700 flex items-center justify-center text-sm font-bold">
+                        <i class="fa-solid fa-arrows-split-up-and-left"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-base font-bold text-slate-900">Room Change Assessments</h3>
+                        <p class="text-xs text-slate-500">Add warden recommendation before administrator approval</p>
+                    </div>
+                </div>
+                <a href="{% url 'room_change_list' %}" class="text-xs font-bold text-cyan-700 hover:underline">View All &rarr;</a>
+            </div>
+
+            {% if recent_room_changes %}
+            <div class="divide-y divide-slate-100">
+                {% for rcr in recent_room_changes %}
+                <div class="py-3 flex items-center justify-between gap-3">
+                    <div class="min-w-0">
+                        <div class="flex items-center space-x-2">
+                            <span class="font-bold text-xs text-slate-900">#{{ rcr.request_code }}</span>
+                            <span class="text-xs text-slate-700 font-semibold truncate">{{ rcr.student.get_full_name|default:rcr.student.username }}</span>
+                        </div>
+                        <p class="text-xs text-slate-500 mt-0.5">
+                            Room {{ rcr.current_room.room_number }} &bull; Reason: {{ rcr.get_reason_category_display }}
+                        </p>
+                    </div>
+                    <div class="flex items-center space-x-2 shrink-0">
+                        <a href="{% url 'room_change_detail' rcr.pk %}" class="px-3 py-1 bg-cyan-50 hover:bg-cyan-100 text-cyan-800 rounded-lg text-xs font-bold transition-colors">
+                            Assess & Recommend
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="py-8 text-center text-slate-400">
+                <i class="fa-solid fa-clipboard-check text-3xl mb-2 text-cyan-500"></i>
+                <p class="text-xs">No pending room-change reviews in your block</p>
+            </div>
+            {% endif %}
+        </div>
+
+    </div>
+
+    <!-- Active Student Residents in Wing -->
+    <div class="bg-white rounded-3xl border border-slate-200/80 shadow-xs p-6">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-base font-bold text-slate-900 flex items-center space-x-2">
+                <i class="fa-solid fa-users text-emerald-600"></i>
+                <span>Resident Scholars in Assigned Block</span>
+            </h3>
+            <a href="{% url 'student_directory' %}" class="text-xs font-bold text-emerald-700 hover:underline">Full Student Directory &rarr;</a>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+            {% for a in active_residents %}
+            <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 flex items-center space-x-3">
+                {% if a.student.profile_pic %}
+                <img src="{{ a.student.profile_pic.url }}" alt="{{ a.student.username }}" class="w-11 h-11 rounded-full object-cover border border-slate-300">
+                {% else %}
+                <div class="w-11 h-11 rounded-full bg-slate-200 text-slate-700 flex items-center justify-center font-bold text-xs">
+                    {{ a.student.initials }}
+                </div>
+                {% endif %}
+                <div class="min-w-0 flex-1">
+                    <p class="text-xs font-bold text-slate-900 truncate">{{ a.student.get_full_name|default:a.student.username }}</p>
+                    <p class="text-[11px] text-emerald-700 font-semibold truncate">Room {{ a.room.room_number }} ({{ a.bed.bed_code }})</p>
+                    <p class="text-[10px] text-slate-500 truncate">Emergency: {{ a.student.emergency_contact|default:"-" }}</p>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-span-3 py-6 text-center text-slate-400 text-xs">
+                No active residents in this wing currently.
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+</div>
+{% endblock %}

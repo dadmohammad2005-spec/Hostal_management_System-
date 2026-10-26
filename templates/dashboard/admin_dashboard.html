@@ -1,0 +1,478 @@
+{% extends 'base.html' %}
+
+{% block title %}Administrator Operations Hub - Ali Hall Hostel | IUB{% endblock %}
+{% block header_title %}Chief Warden & Administrative Control Center{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+
+    <!-- Top Quick Action Bar -->
+    <div class="flex flex-wrap items-center justify-between gap-4 bg-white p-4 sm:p-5 rounded-3xl border border-slate-200/80 shadow-xs">
+        <div class="flex flex-wrap items-center gap-2.5">
+            <span class="text-xs font-bold text-slate-400 uppercase tracking-wider me-1">Operations:</span>
+            <a href="{% url 'student_cnic_search' %}" class="inline-flex items-center space-x-2 px-3.5 py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-xl shadow-xs transition-colors">
+                <i class="fa-solid fa-id-card text-emerald-400"></i>
+                <span>CNIC Search</span>
+            </a>
+            <a href="{% url 'allocation_create' %}" class="inline-flex items-center space-x-2 px-3.5 py-2 bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold rounded-xl shadow-xs transition-colors">
+                <i class="fa-solid fa-bed"></i>
+                <span>Allocate Room / Bed</span>
+            </a>
+            <a href="{% url 'application_list' %}" class="inline-flex items-center space-x-2 px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl shadow-xs transition-colors">
+                <i class="fa-solid fa-file-signature"></i>
+                <span>Review Applications ({{ pending_applications_count }})</span>
+            </a>
+            <a href="{% url 'room_change_list' %}" class="inline-flex items-center space-x-2 px-3.5 py-2 bg-cyan-600 hover:bg-cyan-700 text-white text-xs font-bold rounded-xl shadow-xs transition-colors">
+                <i class="fa-solid fa-arrows-split-up-and-left"></i>
+                <span>Room Changes ({{ pending_room_changes_count }})</span>
+            </a>
+            <a href="{% url 'fee_voucher_list' %}" class="inline-flex items-center space-x-2 px-3.5 py-2 bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold rounded-xl shadow-xs transition-colors">
+                <i class="fa-solid fa-receipt"></i>
+                <span>Fee Vouchers ({{ pending_fee_count }})</span>
+            </a>
+            <a href="{% url 'warden_create' %}" class="inline-flex items-center space-x-2 px-3.5 py-2 bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold rounded-xl shadow-xs transition-colors">
+                <i class="fa-solid fa-user-shield"></i>
+                <span>Add Warden</span>
+            </a>
+            <a href="{% url 'announcement_create' %}" class="inline-flex items-center space-x-2 px-3.5 py-2 bg-slate-700 hover:bg-slate-800 text-white text-xs font-bold rounded-xl shadow-xs transition-colors">
+                <i class="fa-solid fa-bullhorn"></i>
+                <span>Post Notice</span>
+            </a>
+        </div>
+        <div class="flex items-center space-x-2">
+            <a href="{% url 'export_students_csv' %}" class="inline-flex items-center space-x-1.5 px-3 py-1.5 bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-xl text-xs font-bold">
+                <i class="fa-solid fa-file-csv text-emerald-600"></i>
+                <span>Residents CSV</span>
+            </a>
+            <a href="{% url 'export_fee_defaulters_csv' %}" class="inline-flex items-center space-x-1.5 px-3 py-1.5 bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-xl text-xs font-bold">
+                <i class="fa-solid fa-file-excel text-rose-600"></i>
+                <span>Defaulters CSV</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Student CNIC Search System Widget (Prominent Admin Search) -->
+    <div class="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white rounded-3xl p-6 shadow-md border border-slate-800">
+        <div class="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4">
+            <div class="space-y-1">
+                <div class="flex items-center space-x-2">
+                    <span class="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-sm border border-emerald-500/30">
+                        <i class="fa-solid fa-id-card"></i>
+                    </span>
+                    <h3 class="text-base font-extrabold text-white">Student CNIC Number Search System</h3>
+                </div>
+                <p class="text-xs text-slate-300">
+                    Instantly look up any resident scholar by 13-digit CNIC to view room, semester, fee records, and documents.
+                </p>
+            </div>
+            <form method="GET" action="{% url 'student_cnic_search' %}" class="flex-1 max-w-md">
+                <div class="flex items-center gap-2">
+                    <div class="relative flex-1">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-slate-400 text-xs">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                        </span>
+                        <input type="text" name="cnic" required
+                            placeholder="Enter CNIC e.g. 5440166878999"
+                            class="w-full pl-9 pr-3 py-2.5 bg-slate-800/90 border border-slate-700 rounded-xl text-white placeholder-slate-400 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono">
+                    </div>
+                    <button type="submit" class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs shadow-md transition-all shrink-0 flex items-center space-x-1.5">
+                        <i class="fa-solid fa-search"></i>
+                        <span>Search</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+        <div class="mt-3 flex items-center gap-2 text-xs text-slate-400">
+            <span class="text-[11px] font-bold text-slate-300">Quick Test:</span>
+            <a href="{% url 'student_cnic_search' %}?cnic=5440166878999" class="text-[11px] px-2 py-0.5 rounded-md bg-slate-800 text-emerald-300 hover:bg-slate-700 font-mono">
+                5440166878999 &rarr;
+            </a>
+        </div>
+    </div>
+
+    <!-- Analytics Metric Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        <!-- Card 1: 300 Rooms & 600 Beds Capacity -->
+        <div class="bg-white p-5 rounded-3xl border border-slate-200/80 shadow-xs relative overflow-hidden">
+            <div class="flex items-center justify-between mb-3">
+                <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Hostel Capacity</span>
+                <div class="w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-700 flex items-center justify-center">
+                    <i class="fa-solid fa-building text-lg"></i>
+                </div>
+            </div>
+            <div class="flex items-baseline space-x-2">
+                <span class="text-3xl font-extrabold text-slate-900">{{ occupancy_pct }}%</span>
+                <span class="text-xs text-slate-500 font-medium">({{ occupied_beds }}/{{ total_beds }} Beds)</span>
+            </div>
+            <div class="w-full bg-slate-100 rounded-full h-2 mt-3 overflow-hidden">
+                <div class="bg-emerald-600 h-2 rounded-full transition-all duration-500" style="width: {{ occupancy_pct }}%"></div>
+            </div>
+            <div class="flex items-center justify-between text-[11px] text-slate-500 mt-2.5">
+                <span>Total: <strong>300 Rooms / 600 Beds</strong></span>
+                <span>Available: <strong class="text-emerald-700 font-bold">{{ available_beds }}</strong></span>
+            </div>
+        </div>
+
+        <!-- Card 2: Student Population & Applications -->
+        <div class="bg-white p-5 rounded-3xl border border-slate-200/80 shadow-xs relative overflow-hidden">
+            <div class="flex items-center justify-between mb-3">
+                <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Student Residents</span>
+                <div class="w-10 h-10 rounded-2xl bg-blue-50 text-blue-700 flex items-center justify-center">
+                    <i class="fa-solid fa-user-graduate text-lg"></i>
+                </div>
+            </div>
+            <div class="flex items-baseline space-x-2">
+                <span class="text-3xl font-extrabold text-slate-900">{{ total_students }}</span>
+                <span class="text-xs text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded-full">Registered</span>
+            </div>
+            <div class="flex items-center justify-between text-xs text-slate-600 mt-4 pt-2 border-t border-slate-100">
+                <span>Pending Applications:</span>
+                <a href="{% url 'application_list' %}?status=PENDING" class="font-extrabold text-blue-700 hover:underline">
+                    {{ pending_applications_count }} pending &rarr;
+                </a>
+            </div>
+        </div>
+
+        <!-- Card 3: Complaints (11 Categories) -->
+        <div class="bg-white p-5 rounded-3xl border border-slate-200/80 shadow-xs relative overflow-hidden">
+            <div class="flex items-center justify-between mb-3">
+                <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Maintenance Complaints</span>
+                <div class="w-10 h-10 rounded-2xl bg-rose-50 text-rose-700 flex items-center justify-center">
+                    <i class="fa-solid fa-wrench text-lg"></i>
+                </div>
+            </div>
+            <div class="flex items-baseline space-x-2">
+                <span class="text-3xl font-extrabold text-slate-900">{{ pending_complaints_count }}</span>
+                <span class="text-xs text-rose-700 font-bold bg-rose-50 px-2 py-0.5 rounded-full">Active Tickets</span>
+            </div>
+            <div class="flex items-center justify-between text-xs text-slate-600 mt-4 pt-2 border-t border-slate-100">
+                <span>Maintenance Beds:</span>
+                <span class="font-bold text-amber-700">{{ maintenance_beds }} beds</span>
+            </div>
+        </div>
+
+        <!-- Card 4: Room-Change & Gate Passes -->
+        <div class="bg-white p-5 rounded-3xl border border-slate-200/80 shadow-xs relative overflow-hidden">
+            <div class="flex items-center justify-between mb-3">
+                <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Requests & Passes</span>
+                <div class="w-10 h-10 rounded-2xl bg-cyan-50 text-cyan-700 flex items-center justify-center">
+                    <i class="fa-solid fa-arrows-split-up-and-left text-lg"></i>
+                </div>
+            </div>
+            <div class="flex items-baseline space-x-2">
+                <span class="text-3xl font-extrabold text-slate-900">{{ pending_room_changes_count }}</span>
+                <span class="text-xs text-cyan-700 font-bold bg-cyan-50 px-2 py-0.5 rounded-full">Room Changes</span>
+            </div>
+            <div class="flex items-center justify-between text-xs text-slate-600 mt-4 pt-2 border-t border-slate-100">
+                <span>Gate Pass Requests:</span>
+                <a href="{% url 'gate_pass_list' %}?status=PENDING" class="font-extrabold text-teal-700 hover:underline">
+                    {{ pending_gate_passes_count }} pending &rarr;
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Operational Sections Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+        <!-- Section 1: Pending Student Admission Applications -->
+        <div class="bg-white rounded-3xl border border-slate-200/80 shadow-xs p-6">
+            <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center space-x-2">
+                    <div class="w-8 h-8 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center text-sm font-bold">
+                        <i class="fa-solid fa-file-signature"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-base font-bold text-slate-900">Pending Student Applications</h3>
+                        <p class="text-xs text-slate-500">Review profile, CNIC, and admission slip before allocating</p>
+                    </div>
+                </div>
+                <a href="{% url 'application_list' %}" class="text-xs font-bold text-blue-700 hover:underline">View All &rarr;</a>
+            </div>
+
+            {% if recent_applications %}
+            <div class="divide-y divide-slate-100">
+                {% for st in recent_applications %}
+                <div class="py-3.5 flex items-center justify-between gap-3">
+                    <div class="flex items-center space-x-3 min-w-0">
+                        {% if st.profile_pic %}
+                        <img src="{{ st.profile_pic.url }}" alt="{{ st.username }}" class="w-10 h-10 rounded-full object-cover border border-slate-200">
+                        {% else %}
+                        <div class="w-10 h-10 rounded-full bg-slate-100 text-slate-700 flex items-center justify-center font-bold text-xs">
+                            {{ st.initials }}
+                        </div>
+                        {% endif %}
+                        <div class="min-w-0">
+                            <p class="text-sm font-bold text-slate-900 truncate">{{ st.get_full_name|default:st.username }}</p>
+                            <p class="text-xs text-slate-500 truncate">{{ st.registration_no|default:st.cnic_or_id }} &bull; {{ st.department|default:"Student" }}</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-2 shrink-0">
+                        <span class="inline-block text-[11px] font-bold px-2 py-0.5 rounded-full 
+                            {% if st.application_status == 'APPROVED' %}bg-blue-100 text-blue-800
+                            {% elif st.application_status == 'ALLOCATED' %}bg-emerald-100 text-emerald-800
+                            {% elif st.application_status == 'REJECTED' %}bg-rose-100 text-rose-800
+                            {% else %}bg-amber-100 text-amber-800{% endif %}">
+                            {{ st.get_application_status_display }}
+                        </span>
+                        <a href="{% url 'application_detail' st.pk %}" class="px-3 py-1 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-lg text-xs font-bold transition-colors">
+                            Review
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="py-8 text-center text-slate-400">
+                <i class="fa-solid fa-clipboard-check text-3xl mb-2"></i>
+                <p class="text-xs">No pending student applications</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Section 2: Room Change Requests Pending Action -->
+        <div class="bg-white rounded-3xl border border-slate-200/80 shadow-xs p-6">
+            <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center space-x-2">
+                    <div class="w-8 h-8 rounded-xl bg-cyan-100 text-cyan-700 flex items-center justify-center text-sm font-bold">
+                        <i class="fa-solid fa-arrows-split-up-and-left"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-base font-bold text-slate-900">Room Change Requests</h3>
+                        <p class="text-xs text-slate-500">Warden assessment and Administrator transfer execution</p>
+                    </div>
+                </div>
+                <a href="{% url 'room_change_list' %}" class="text-xs font-bold text-cyan-700 hover:underline">View All &rarr;</a>
+            </div>
+
+            {% if recent_room_changes %}
+            <div class="divide-y divide-slate-100">
+                {% for rcr in recent_room_changes %}
+                <div class="py-3.5 flex items-center justify-between gap-3">
+                    <div class="min-w-0">
+                        <div class="flex items-center space-x-2">
+                            <span class="font-bold text-xs text-slate-900">#{{ rcr.request_code }}</span>
+                            <span class="text-xs text-slate-600 truncate font-semibold">{{ rcr.student.get_full_name|default:rcr.student.username }}</span>
+                        </div>
+                        <p class="text-xs text-slate-500 mt-0.5">
+                            From: <strong>Room {{ rcr.current_room.room_number }} ({{ rcr.current_bed.bed_code }})</strong> &bull; Reason: {{ rcr.get_reason_category_display }}
+                        </p>
+                    </div>
+                    <div class="flex items-center space-x-2 shrink-0">
+                        <span class="inline-block text-[11px] font-bold px-2 py-0.5 rounded-full 
+                            {% if rcr.status == 'COMPLETED' %}bg-emerald-100 text-emerald-800
+                            {% elif rcr.status == 'APPROVED' %}bg-blue-100 text-blue-800
+                            {% elif rcr.status == 'REJECTED' %}bg-rose-100 text-rose-800
+                            {% elif rcr.status == 'WARDEN_RECOMMENDED' %}bg-purple-100 text-purple-800
+                            {% else %}bg-amber-100 text-amber-800{% endif %}">
+                            {{ rcr.get_status_display }}
+                        </span>
+                        <a href="{% url 'room_change_detail' rcr.pk %}" class="px-3 py-1 bg-cyan-50 hover:bg-cyan-100 text-cyan-800 rounded-lg text-xs font-bold transition-colors">
+                            Process
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="py-8 text-center text-slate-400">
+                <i class="fa-solid fa-arrows-split-up-and-left text-3xl mb-2"></i>
+                <p class="text-xs">No room change requests at this moment</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Section 3: Recent Maintenance Tickets -->
+        <div class="bg-white rounded-3xl border border-slate-200/80 shadow-xs p-6">
+            <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center space-x-2">
+                    <div class="w-8 h-8 rounded-xl bg-rose-100 text-rose-700 flex items-center justify-center text-sm font-bold">
+                        <i class="fa-solid fa-wrench"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-base font-bold text-slate-900">Maintenance Tickets (11 Categories)</h3>
+                        <p class="text-xs text-slate-500">Assign staff, monitor urgency, and record resolution</p>
+                    </div>
+                </div>
+                <a href="{% url 'complaint_list' %}" class="text-xs font-bold text-rose-700 hover:underline">View All &rarr;</a>
+            </div>
+
+            {% if recent_complaints %}
+            <div class="divide-y divide-slate-100">
+                {% for cmp in recent_complaints %}
+                <div class="py-3 flex items-center justify-between gap-3">
+                    <div class="min-w-0">
+                        <div class="flex items-center space-x-2">
+                            <span class="text-xs font-bold text-slate-900 truncate">{{ cmp.title }}</span>
+                            <span class="text-[10px] font-bold px-1.5 py-0.5 rounded-md
+                                {% if cmp.priority == 'URGENT' %}bg-rose-100 text-rose-800
+                                {% elif cmp.priority == 'HIGH' %}bg-amber-100 text-amber-800
+                                {% else %}bg-slate-100 text-slate-700{% endif %}">
+                                {{ cmp.get_priority_display }}
+                            </span>
+                        </div>
+                        <p class="text-xs text-slate-500 mt-0.5">
+                            {{ cmp.complaint_ref }} &bull; Room: {{ cmp.room_number|default:"-" }} &bull; {{ cmp.get_category_display }}
+                        </p>
+                    </div>
+                    <div class="flex items-center space-x-2 shrink-0">
+                        <span class="inline-block text-[11px] font-bold px-2 py-0.5 rounded-full 
+                            {% if cmp.status == 'RESOLVED' %}bg-emerald-100 text-emerald-800
+                            {% elif cmp.status == 'IN_PROGRESS' %}bg-blue-100 text-blue-800
+                            {% elif cmp.status == 'REJECTED' %}bg-rose-100 text-rose-800
+                            {% else %}bg-amber-100 text-amber-800{% endif %}">
+                            {{ cmp.get_status_display }}
+                        </span>
+                        <a href="{% url 'complaint_detail' cmp.pk %}" class="px-3 py-1 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-lg text-xs font-bold transition-colors">
+                            Details
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="py-8 text-center text-slate-400">
+                <i class="fa-solid fa-check-double text-3xl mb-2"></i>
+                <p class="text-xs">No active maintenance complaints</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Section 4: Hostel Announcements / Notice Board -->
+        <div class="bg-white rounded-3xl border border-slate-200/80 shadow-xs p-6">
+            <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center space-x-2">
+                    <div class="w-8 h-8 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center text-sm font-bold">
+                        <i class="fa-solid fa-bullhorn"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-base font-bold text-slate-900">Hostel Announcements & Notices</h3>
+                        <p class="text-xs text-slate-500">Official circulars, curfew timings, and notifications</p>
+                    </div>
+                </div>
+                <a href="{% url 'announcement_create' %}" class="text-xs font-bold text-amber-700 hover:underline">+ New Notice</a>
+            </div>
+
+            {% if recent_announcements %}
+            <div class="space-y-3">
+                {% for notice in recent_announcements %}
+                <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80">
+                    <div class="flex items-center justify-between mb-1">
+                        <span class="text-xs font-bold text-slate-900">{{ notice.title }}</span>
+                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-full 
+                            {% if notice.priority == 'URGENT' %}bg-rose-100 text-rose-800
+                            {% elif notice.priority == 'IMPORTANT' %}bg-amber-100 text-amber-800
+                            {% else %}bg-slate-200 text-slate-700{% endif %}">
+                            {{ notice.get_priority_display }}
+                        </span>
+                    </div>
+                    <p class="text-xs text-slate-600 line-clamp-2">{{ notice.content }}</p>
+                    <span class="text-[10px] text-slate-400 mt-2 block">{{ notice.created_at|date:"M d, Y - h:i A" }}</span>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="py-8 text-center text-slate-400">
+                <i class="fa-solid fa-bullhorn text-3xl mb-2"></i>
+                <p class="text-xs">No active announcements</p>
+            </div>
+            {% endif %}
+        </div>
+
+    </div>
+
+    <!-- Section 5: Student Fee Vouchers Pending Verification -->
+    <div class="bg-white rounded-3xl border border-slate-200/80 shadow-xs p-6 sm:p-8 space-y-4">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-4 border-b border-slate-100">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-2xl bg-amber-50 text-amber-700 flex items-center justify-center font-bold text-lg">
+                    <i class="fa-solid fa-file-invoice-dollar"></i>
+                </div>
+                <div>
+                    <h3 class="font-bold text-slate-900 text-base">Hostel Fee Vouchers & Payment Verification Desk</h3>
+                    <p class="text-xs text-slate-500">Verify student submitted payment receipts and update status (Pending, Paid, Rejected)</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-2">
+                <a href="{% url 'fee_voucher_list' %}?status=PENDING_VERIFICATION" class="px-3.5 py-1.5 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-xs font-bold transition-colors">
+                    Review Pending ({{ pending_fee_count }}) &rarr;
+                </a>
+                <a href="{% url 'fee_voucher_list' %}" class="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-colors">
+                    All Vouchers
+                </a>
+            </div>
+        </div>
+
+        {% if pending_fee_verifications %}
+        <div class="overflow-x-auto rounded-2xl border border-slate-200/80">
+            <table class="w-full text-left text-xs text-slate-700">
+                <thead class="bg-slate-50 text-[11px] font-bold text-slate-500 uppercase tracking-wider border-b border-slate-200">
+                    <tr>
+                        <th class="py-3 px-4">Voucher Code</th>
+                        <th class="py-3 px-4">Student Resident</th>
+                        <th class="py-3 px-4">Month / Type</th>
+                        <th class="py-3 px-4">Amount</th>
+                        <th class="py-3 px-4">Method & Trx ID</th>
+                        <th class="py-3 px-4">Receipt Proof</th>
+                        <th class="py-3 px-4 text-right">Verification Action</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    {% for v in pending_fee_verifications %}
+                    <tr class="hover:bg-slate-50/80 transition-colors">
+                        <td class="py-3 px-4 font-mono font-bold text-slate-900">
+                            <a href="{% url 'fee_voucher_detail' v.pk %}" class="hover:underline hover:text-emerald-700">
+                                {{ v.voucher_code }}
+                            </a>
+                        </td>
+                        <td class="py-3 px-4">
+                            <span class="font-bold text-slate-900 block">{{ v.student.get_full_name|default:v.student.username }}</span>
+                            <span class="text-[11px] text-slate-500 font-mono">Roll: {{ v.student.registration_no|default:v.student.cnic_or_id }}</span>
+                        </td>
+                        <td class="py-3 px-4">
+                            <span class="font-bold text-slate-800 block">{{ v.billing_month }}</span>
+                            <span class="text-[11px] text-slate-400">{{ v.get_fee_type_display }}</span>
+                        </td>
+                        <td class="py-3 px-4 font-extrabold text-slate-900">
+                            Rs. {{ v.amount }}
+                        </td>
+                        <td class="py-3 px-4">
+                            <span class="font-semibold text-slate-800 block">{{ v.payment_method|default:"Online" }}</span>
+                            <span class="text-[11px] font-mono text-slate-500">{{ v.transaction_id|default:"-" }}</span>
+                        </td>
+                        <td class="py-3 px-4">
+                            {% if v.payment_proof %}
+                            <a href="{{ v.payment_proof.url }}" target="_blank" class="inline-flex items-center space-x-1 px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold border border-slate-200">
+                                {% if v.is_file_pdf %}
+                                <i class="fa-solid fa-file-pdf text-rose-600"></i>
+                                <span>PDF</span>
+                                {% else %}
+                                <i class="fa-solid fa-image text-emerald-600"></i>
+                                <span>Image</span>
+                                {% endif %}
+                            </a>
+                            {% else %}
+                            <span class="text-slate-400 italic">No slip</span>
+                            {% endif %}
+                        </td>
+                        <td class="py-3 px-4 text-right">
+                            <a href="{% url 'fee_verify' v.pk %}?next={% url 'admin_portal' %}" class="px-3.5 py-1.5 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-xs font-bold shadow-xs transition-colors inline-flex items-center space-x-1.5">
+                                <i class="fa-solid fa-stamp"></i>
+                                <span>Verify / Reject</span>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="py-8 text-center text-slate-400 text-xs">
+            <i class="fa-solid fa-circle-check text-3xl mb-2 text-emerald-500"></i>
+            <p class="font-medium text-slate-600">All submitted student fee vouchers have been verified. Zero pending payments.</p>
+        </div>
+        {% endif %}
+    </div>
+
+</div>
+{% endblock %}

@@ -1,0 +1,298 @@
+{% extends 'base.html' %}
+
+{% block title %}Admin & Staff Operations - Smart Hostel{% endblock %}
+{% block header_title %}Operations & Management Dashboard{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+
+    <!-- Top Quick Action Bar -->
+    <div class="flex flex-wrap items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+        <div class="flex items-center space-x-3">
+            <span class="text-sm font-semibold text-slate-700">Quick Actions:</span>
+            <a href="{% url 'allocation_create' %}" class="inline-flex items-center space-x-2 px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-lg shadow-sm transition-colors">
+                <i class="fa-solid fa-plus"></i>
+                <span>New Bed Allocation</span>
+            </a>
+            <a href="{% url 'bulk_fee_generate' %}" class="inline-flex items-center space-x-2 px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg shadow-sm transition-colors">
+                <i class="fa-solid fa-file-invoice-dollar"></i>
+                <span>Bulk Generate Fees</span>
+            </a>
+            <a href="{% url 'fee_voucher_create' %}" class="inline-flex items-center space-x-2 px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-semibold rounded-lg border border-slate-300 transition-colors">
+                <i class="fa-solid fa-receipt"></i>
+                <span>Single Voucher</span>
+            </a>
+        </div>
+        <div class="flex items-center space-x-2">
+            <a href="{% url 'export_students_csv' %}" class="inline-flex items-center space-x-1.5 px-3 py-1.5 bg-slate-50 hover:bg-slate-100 text-slate-600 hover:text-slate-900 border border-slate-200 rounded-lg text-xs font-medium">
+                <i class="fa-solid fa-download text-indigo-500"></i>
+                <span>Residents CSV</span>
+            </a>
+            <a href="{% url 'export_fee_defaulters_csv' %}" class="inline-flex items-center space-x-1.5 px-3 py-1.5 bg-slate-50 hover:bg-slate-100 text-slate-600 hover:text-slate-900 border border-slate-200 rounded-lg text-xs font-medium">
+                <i class="fa-solid fa-file-excel text-rose-500"></i>
+                <span>Defaulters CSV</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Analytics Metric Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        <!-- Card 1: Capacity & Occupancy -->
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden">
+            <div class="flex items-center justify-between mb-3">
+                <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Bed Occupancy</span>
+                <div class="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                    <i class="fa-solid fa-bed text-lg"></i>
+                </div>
+            </div>
+            <div class="flex items-baseline space-x-2">
+                <span class="text-3xl font-extrabold text-slate-900">{{ occupancy_pct }}%</span>
+                <span class="text-xs text-slate-500 font-medium">({{ occupied_beds }}/{{ total_beds }} Beds)</span>
+            </div>
+            <div class="w-full bg-slate-100 rounded-full h-2 mt-3 overflow-hidden">
+                <div class="bg-indigo-600 h-2 rounded-full transition-all duration-500" style="width: {{ occupancy_pct }}%"></div>
+            </div>
+            <div class="flex items-center justify-between text-[11px] text-slate-500 mt-2">
+                <span>Available: <strong class="text-emerald-600">{{ available_beds }}</strong></span>
+                <span>Maintenance: <strong class="text-amber-600">{{ maintenance_beds }}</strong></span>
+            </div>
+        </div>
+
+        <!-- Card 2: Active Residents -->
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden">
+            <div class="flex items-center justify-between mb-3">
+                <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Active Residents</span>
+                <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                    <i class="fa-solid fa-users text-lg"></i>
+                </div>
+            </div>
+            <div class="flex items-baseline space-x-2">
+                <span class="text-3xl font-extrabold text-slate-900">{{ total_active_students }}</span>
+                <span class="text-xs text-emerald-600 font-semibold">Enrolled</span>
+            </div>
+            <p class="text-xs text-slate-500 mt-3 flex items-center space-x-1">
+                <span>Across {{ total_hostels }} Hostel Buildings & {{ total_rooms }} Rooms</span>
+            </p>
+        </div>
+
+        <!-- Card 3: Pending Fees & Verification -->
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden">
+            <div class="flex items-center justify-between mb-3">
+                <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Unpaid Dues</span>
+                <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
+                    <i class="fa-solid fa-money-bill-wave text-lg"></i>
+                </div>
+            </div>
+            <div class="flex items-baseline space-x-2">
+                <span class="text-3xl font-extrabold text-slate-900">Rs. {{ pending_fee_amount }}</span>
+                <span class="text-xs text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full font-semibold">{{ pending_fee_count }} Invoices</span>
+            </div>
+            <p class="text-xs text-slate-500 mt-3 flex items-center justify-between">
+                <span>Pending Verification:</span>
+                <a href="{% url 'fee_voucher_list' %}?status=PENDING_VERIFICATION" class="font-bold text-indigo-600 hover:underline">{{ verification_needed_count }} proofs</a>
+            </p>
+        </div>
+
+        <!-- Card 4: Open Maintenance Tickets -->
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden">
+            <div class="flex items-center justify-between mb-3">
+                <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Open Complaints</span>
+                <div class="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center">
+                    <i class="fa-solid fa-triangle-exclamation text-lg"></i>
+                </div>
+            </div>
+            <div class="flex items-baseline space-x-2">
+                <span class="text-3xl font-extrabold text-slate-900">{{ open_complaints_count }}</span>
+                <span class="text-xs text-rose-600 font-medium">Require Attention</span>
+            </div>
+            <p class="text-xs text-slate-500 mt-3 flex items-center justify-between">
+                <span>Gate Pass Requests:</span>
+                <a href="{% url 'gate_pass_list' %}?status=PENDING" class="font-bold text-teal-600 hover:underline">{{ pending_gate_passes_count }} pending</a>
+            </p>
+        </div>
+    </div>
+
+    <!-- Active Operational Queues (2-column layout) -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+        <!-- Queue 1: Pending Gate Passes (Quick Approve/Reject) -->
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+            <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center space-x-2.5">
+                    <div class="w-8 h-8 rounded-lg bg-teal-50 text-teal-600 flex items-center justify-center">
+                        <i class="fa-solid fa-id-badge text-sm"></i>
+                    </div>
+                    <h3 class="font-bold text-slate-900">Pending Gate Passes</h3>
+                </div>
+                <a href="{% url 'gate_pass_list' %}" class="text-xs font-semibold text-indigo-600 hover:underline">View All</a>
+            </div>
+
+            {% if recent_gate_passes %}
+            <div class="divide-y divide-slate-100">
+                {% for gp in recent_gate_passes %}
+                <div class="py-3 flex items-center justify-between gap-4">
+                    <div class="min-w-0">
+                        <div class="flex items-center space-x-2">
+                            <span class="font-semibold text-sm text-slate-800">{{ gp.student.get_full_name|default:gp.student.username }}</span>
+                            <span class="text-xs text-slate-400">#{{ gp.pass_code }}</span>
+                        </div>
+                        <p class="text-xs text-slate-500 truncate mt-0.5">{{ gp.reason }} &bull; Destination: {{ gp.destination }}</p>
+                        <p class="text-[11px] text-slate-400">{{ gp.leave_date|date:"M d, h:i A" }} &rarr; {{ gp.return_date|date:"M d, h:i A" }}</p>
+                    </div>
+                    <div class="flex items-center space-x-2 shrink-0">
+                        <a href="{% url 'gate_pass_action' gp.pk 'approve' %}?next={% url 'dashboard' %}" class="px-2.5 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-semibold rounded-lg text-xs border border-emerald-200 transition-colors">
+                            <i class="fa-solid fa-check mr-1"></i>Approve
+                        </a>
+                        <form method="POST" action="{% url 'gate_pass_action' gp.pk 'reject' %}?next={% url 'dashboard' %}" class="inline">
+                            {% csrf_token %}
+                            <input type="hidden" name="rejection_reason" value="Rejected from dashboard">
+                            <button type="submit" class="px-2.5 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 font-semibold rounded-lg text-xs border border-rose-200 transition-colors">
+                                <i class="fa-solid fa-xmark mr-1"></i>Reject
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-8 text-slate-400 text-sm">
+                <i class="fa-solid fa-circle-check text-2xl text-emerald-400 mb-1.5 block"></i>
+                No pending gate passes to review!
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Queue 2: Maintenance / Complaint Tickets -->
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+            <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center space-x-2.5">
+                    <div class="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center">
+                        <i class="fa-solid fa-wrench text-sm"></i>
+                    </div>
+                    <h3 class="font-bold text-slate-900">Urgent Maintenance Tickets</h3>
+                </div>
+                <a href="{% url 'complaint_list' %}" class="text-xs font-semibold text-indigo-600 hover:underline">View All</a>
+            </div>
+
+            {% if recent_complaints %}
+            <div class="divide-y divide-slate-100">
+                {% for c in recent_complaints %}
+                <div class="py-3 flex items-center justify-between gap-4">
+                    <div class="min-w-0">
+                        <div class="flex items-center space-x-2">
+                            <span class="inline-block text-[10px] font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700">
+                                {{ c.get_category_display }}
+                            </span>
+                            <span class="font-semibold text-sm text-slate-800 truncate">{{ c.title }}</span>
+                        </div>
+                        <p class="text-xs text-slate-500 truncate mt-0.5">{{ c.student.get_full_name|default:c.student.username }} &bull; {{ c.created_at|timesince }} ago</p>
+                    </div>
+                    <div class="shrink-0 flex items-center space-x-2">
+                        <span class="inline-block text-xs font-semibold px-2.5 py-1 rounded-full 
+                            {% if c.status == 'PENDING' %}bg-amber-100 text-amber-800 border border-amber-200
+                            {% elif c.status == 'IN_PROGRESS' %}bg-blue-100 text-blue-800 border border-blue-200
+                            {% else %}bg-emerald-100 text-emerald-800 border border-emerald-200{% endif %}">
+                            {{ c.get_status_display }}
+                        </span>
+                        <a href="{% url 'complaint_detail' c.pk %}" class="text-indigo-600 hover:text-indigo-800 text-xs font-semibold">
+                            Manage &rarr;
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-8 text-slate-400 text-sm">
+                <i class="fa-solid fa-circle-check text-2xl text-emerald-400 mb-1.5 block"></i>
+                All maintenance tickets resolved!
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Bottom Section: Fee Verification Queue & Recent Allotments -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+        <!-- Fee Verification Queue -->
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+            <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center space-x-2.5">
+                    <div class="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
+                        <i class="fa-solid fa-receipt text-sm"></i>
+                    </div>
+                    <h3 class="font-bold text-slate-900">Fee Proofs Pending Verification</h3>
+                </div>
+                <a href="{% url 'fee_voucher_list' %}?status=PENDING_VERIFICATION" class="text-xs font-semibold text-indigo-600 hover:underline">View All</a>
+            </div>
+
+            {% if recent_verifications %}
+            <div class="divide-y divide-slate-100">
+                {% for v in recent_verifications %}
+                <div class="py-3 flex items-center justify-between gap-4">
+                    <div>
+                        <div class="flex items-center space-x-2">
+                            <span class="font-semibold text-sm text-slate-800">{{ v.student.get_full_name|default:v.student.username }}</span>
+                            <span class="text-xs text-slate-400">#{{ v.voucher_code }}</span>
+                        </div>
+                        <p class="text-xs text-slate-500 mt-0.5">Trx: <code class="bg-slate-100 px-1 rounded text-slate-700">{{ v.transaction_id|default:"N/A" }}</code> &bull; Rs. {{ v.amount }} ({{ v.get_fee_type_display }})</p>
+                    </div>
+                    <div class="shrink-0 flex items-center space-x-2">
+                        {% if v.payment_proof %}
+                        <a href="{{ v.payment_proof.url }}" target="_blank" class="px-2 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs rounded border border-slate-200">
+                            <i class="fa-solid fa-paperclip mr-1"></i>Proof
+                        </a>
+                        {% endif %}
+                        <a href="{% url 'fee_verify' v.pk %}" class="px-2.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg text-xs shadow-sm">
+                            Verify
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-8 text-slate-400 text-sm">
+                <i class="fa-solid fa-circle-check text-2xl text-emerald-400 mb-1.5 block"></i>
+                No payments waiting for verification!
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Recent Room Allotments -->
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+            <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center space-x-2.5">
+                    <div class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                        <i class="fa-solid fa-user-check text-sm"></i>
+                    </div>
+                    <h3 class="font-bold text-slate-900">Recent Bed Allotments</h3>
+                </div>
+                <a href="{% url 'allocation_list' %}" class="text-xs font-semibold text-indigo-600 hover:underline">View All</a>
+            </div>
+
+            {% if recent_allotments %}
+            <div class="divide-y divide-slate-100">
+                {% for a in recent_allotments %}
+                <div class="py-3 flex items-center justify-between gap-4">
+                    <div>
+                        <span class="font-semibold text-sm text-slate-800">{{ a.student.get_full_name|default:a.student.username }}</span>
+                        <p class="text-xs text-slate-500 mt-0.5">
+                            {{ a.room.block.hostel.name }} &bull; {{ a.room.block.block_name }} &bull; Room {{ a.room.room_number }} (Bed: <strong>{{ a.bed.bed_code }}</strong>)
+                        </p>
+                    </div>
+                    <div class="shrink-0 text-right">
+                        <span class="text-xs text-slate-400 block">{{ a.allotment_date|date:"M d, Y" }}</span>
+                        <a href="{% url 'allocation_vacate' a.pk %}" class="text-xs text-rose-600 hover:underline font-medium">Vacate</a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-8 text-slate-400 text-sm">
+                No active allotments yet. Click "New Bed Allocation" to get started.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+</div>
+{% endblock %}

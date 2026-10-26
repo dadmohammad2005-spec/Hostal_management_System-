@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+
+{% block title %}Vacate Bed Allotment - Smart Hostel{% endblock %}
+{% block header_title %}Bed Checkout & Vacate Confirmation{% endblock %}
+
+{% block content %}
+<div class="max-w-xl mx-auto space-y-6">
+
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-5">
+        <!-- Header -->
+        <div class="flex items-center space-x-3 pb-4 border-b border-slate-100">
+            <div class="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center">
+                <i class="fa-solid fa-person-walking-dashed-line-arrow-right text-lg"></i>
+            </div>
+            <div>
+                <h3 class="font-bold text-base text-slate-900">Vacate Residency</h3>
+                <p class="text-xs text-slate-500">Releases bed back into available pool atomically</p>
+            </div>
+        </div>
+
+        <!-- Student & Bed Summary -->
+        <div class="bg-slate-50 rounded-xl p-4 border border-slate-200 text-xs space-y-2">
+            <div class="flex justify-between">
+                <span class="text-slate-500">Student:</span>
+                <span class="font-bold text-slate-900">{{ allotment.student.get_full_name|default:allotment.student.username }}</span>
+            </div>
+            <div class="flex justify-between">
+                <span class="text-slate-500">Roll No / CNIC:</span>
+                <span class="font-mono text-slate-700">{{ allotment.student.cnic_or_id|default:"N/A" }}</span>
+            </div>
+            <div class="flex justify-between">
+                <span class="text-slate-500">Hostel & Room:</span>
+                <span class="font-semibold text-slate-800">{{ allotment.room.block.hostel.name }} &bull; Room {{ allotment.room.room_number }}</span>
+            </div>
+            <div class="flex justify-between">
+                <span class="text-slate-500">Bed Code:</span>
+                <span class="font-bold text-indigo-600">{{ allotment.bed.bed_code }}</span>
+            </div>
+            <div class="flex justify-between">
+                <span class="text-slate-500">Allotment Date:</span>
+                <span class="text-slate-700">{{ allotment.allotment_date|date:"M d, Y" }}</span>
+            </div>
+        </div>
+
+        <form method="POST" class="space-y-4">
+            {% csrf_token %}
+
+            <div>
+                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Official Vacate Date *</label>
+                {{ form.vacate_date }}
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Checkout Remarks & Key Return Status</label>
+                {{ form.remarks }}
+            </div>
+
+            <div class="p-3 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-800">
+                <i class="fa-solid fa-triangle-exclamation mr-1"></i>
+                <strong>Notice:</strong> This action will mark this allotment as inactive and set Bed <strong>{{ allotment.bed.bed_code }}</strong> status back to <strong>AVAILABLE</strong>.
+            </div>
+
+            <div class="pt-4 border-t border-slate-100 flex items-center justify-end space-x-3">
+                <a href="{% url 'allocation_list' %}" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg transition-colors">
+                    Cancel
+                </a>
+                <button type="submit" class="px-5 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold rounded-lg shadow-sm transition-colors flex items-center space-x-2">
+                    <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                    <span>Confirm Bed Vacation</span>
+                </button>
+            </div>
+        </form>
+    </div>
+
+</div>
+{% endblock %}

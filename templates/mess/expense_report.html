@@ -1,0 +1,160 @@
+{% extends 'mess/base_mess.html' %}
+
+{% block title %}Monthly Financial Report - Ali Hall Mess | IUB{% endblock %}
+{% block header_title %}Monthly Income vs Expense Financial Report{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+
+    <!-- Filter Card -->
+    <div class="mess-card p-4 mb-4">
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3">
+            <div>
+                <h5 class="fw-bold mb-0 text-dark">Mess Income vs Expense Ledger</h5>
+                <small class="text-muted">Comprehensive monthly audit of student fee collections and kitchen expenditure</small>
+            </div>
+            <a href="{% url 'expense_list' %}" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+                &larr; Expenses List
+            </a>
+        </div>
+
+        <form method="GET" class="row g-2 pt-2 border-top">
+            <div class="col-md-4">
+                <input type="month" name="month" value="{{ month_filter }}" class="form-control form-control-sm">
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-success btn-sm w-100 fw-semibold">Load Report</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Executive Financial Summary Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-4">
+            <div class="mess-card p-4 h-100 border-start border-4 border-success">
+                <span class="text-muted text-uppercase fw-bold small d-block mb-1">Total Fee Collections (Income)</span>
+                <h3 class="fw-bold text-success mb-0">Rs. {{ total_income|floatformat:0 }}</h3>
+                <small class="text-muted">Recorded student fee payments</small>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="mess-card p-4 h-100 border-start border-4 border-danger">
+                <span class="text-muted text-uppercase fw-bold small d-block mb-1">Total Operating Expenses</span>
+                <h3 class="fw-bold text-danger mb-0">Rs. {{ total_expense|floatformat:0 }}</h3>
+                <small class="text-muted">Food, groceries, gas, utilities</small>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="mess-card p-4 h-100 border-start border-4 {% if net_balance >= 0 %}border-primary{% else %}border-warning{% endif %}">
+                <span class="text-muted text-uppercase fw-bold small d-block mb-1">Net Monthly Balance (Surplus / Deficit)</span>
+                <h3 class="fw-bold mb-0 {% if net_balance >= 0 %}text-primary{% else %}text-danger{% endif %}">
+                    Rs. {{ net_balance|floatformat:0 }}
+                </h3>
+                <small class="{% if net_balance >= 0 %}text-success{% else %}text-danger{% endif %} fw-semibold">
+                    {% if net_balance >= 0 %}<i class="fa-solid fa-arrow-trend-up me-1"></i>Budget Surplus{% else %}<i class="fa-solid fa-arrow-trend-down me-1"></i>Budget Deficit{% endif %}
+                </small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Expense Category Breakdown Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="mess-card p-3 bg-light border text-center">
+                <small class="text-muted fw-bold d-block text-uppercase">Meat & Fresh Veg</small>
+                <h5 class="fw-bold text-dark mb-0">Rs. {{ food_exp|floatformat:0 }}</h5>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="mess-card p-3 bg-light border text-center">
+                <small class="text-muted fw-bold d-block text-uppercase">Dry Groceries & Rice</small>
+                <h5 class="fw-bold text-dark mb-0">Rs. {{ grocery_exp|floatformat:0 }}</h5>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="mess-card p-3 bg-light border text-center">
+                <small class="text-muted fw-bold d-block text-uppercase">LPG Gas & Utilities</small>
+                <h5 class="fw-bold text-dark mb-0">Rs. {{ utility_exp|floatformat:0 }}</h5>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="mess-card p-3 bg-light border text-center">
+                <small class="text-muted fw-bold d-block text-uppercase">Staff & Maintenance</small>
+                <h5 class="fw-bold text-dark mb-0">Rs. {{ other_exp|floatformat:0 }}</h5>
+            </div>
+        </div>
+    </div>
+
+    <!-- Two-column tables: Fee Collections vs Expenses for this Month -->
+    <div class="row g-4">
+        <!-- Fee Collections -->
+        <div class="col-lg-6">
+            <div class="mess-card p-4 h-100">
+                <h6 class="fw-bold mb-3 text-dark border-bottom pb-2">
+                    <i class="fa-solid fa-money-bill-trend-up text-success me-1"></i> Fee Collections Breakdown
+                </h6>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0 small">
+                        <thead class="table-light text-muted">
+                            <tr>
+                                <th>Date</th>
+                                <th>Student</th>
+                                <th>Method</th>
+                                <th class="text-end">Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for p in payments %}
+                            <tr>
+                                <td>{{ p.payment_date|date:"M d" }}</td>
+                                <td class="fw-bold text-dark">{{ p.student.full_name }}</td>
+                                <td><span class="badge bg-light text-dark border">{{ p.get_payment_method_display }}</span></td>
+                                <td class="text-end fw-bold text-success">Rs. {{ p.amount }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="4" class="text-center text-muted py-3">No payments recorded in this month.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Expenses List -->
+        <div class="col-lg-6">
+            <div class="mess-card p-4 h-100">
+                <h6 class="fw-bold mb-3 text-dark border-bottom pb-2">
+                    <i class="fa-solid fa-wallet text-danger me-1"></i> Operating Expenditures Breakdown
+                </h6>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0 small">
+                        <thead class="table-light text-muted">
+                            <tr>
+                                <th>Date</th>
+                                <th>Title</th>
+                                <th>Category</th>
+                                <th class="text-end">Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for exp in expenses %}
+                            <tr>
+                                <td>{{ exp.expense_date|date:"M d" }}</td>
+                                <td class="fw-bold text-dark">{{ exp.title }}</td>
+                                <td><span class="badge bg-light text-dark border">{{ exp.get_category_display }}</span></td>
+                                <td class="text-end fw-bold text-danger">Rs. {{ exp.amount }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="4" class="text-center text-muted py-3">No expenses recorded in this month.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

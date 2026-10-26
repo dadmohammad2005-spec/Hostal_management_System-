@@ -1,0 +1,108 @@
+{% extends 'base.html' %}
+
+{% block title %}Notifications Inbox - Smart Hostel{% endblock %}
+{% block header_title %}System Notifications Center{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto space-y-6">
+
+    <!-- Header Card -->
+    <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+            <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+                <i class="fa-solid fa-bell text-emerald-600"></i> Notifications Center
+            </h2>
+            <p class="text-xs text-slate-500">Live system alerts regarding your room allocation, complaints, vouchers, and announcements</p>
+        </div>
+        <div class="flex items-center gap-2">
+            <a href="{% url 'notification_mark_all_read' %}" class="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold transition-colors flex items-center gap-1.5">
+                <i class="fa-solid fa-check-double"></i> Mark All as Read
+            </a>
+        </div>
+    </div>
+
+    <!-- Notifications List -->
+    <div class="space-y-3">
+        {% for n in page_obj %}
+        <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm hover:border-slate-300 transition-all flex items-start gap-4 {% if not n.is_read %}ring-2 ring-emerald-500/20 bg-emerald-50/10{% endif %}">
+            
+            <!-- Type Icon Circle -->
+            <div class="w-10 h-10 rounded-xl flex items-center justify-center font-bold text-sm shrink-0
+                {% if n.notification_type == 'ALLOCATION' %}bg-indigo-100 text-indigo-700
+                {% elif n.notification_type == 'ROOM_CHANGE' %}bg-amber-100 text-amber-700
+                {% elif n.notification_type == 'COMPLAINT' %}bg-rose-100 text-rose-700
+                {% elif n.notification_type == 'FEE' %}bg-emerald-100 text-emerald-700
+                {% elif n.notification_type == 'GATEPASS' %}bg-purple-100 text-purple-700
+                {% else %}bg-slate-100 text-slate-700{% endif %}">
+                {% if n.notification_type == 'ALLOCATION' %}
+                <i class="fa-solid fa-bed"></i>
+                {% elif n.notification_type == 'ROOM_CHANGE' %}
+                <i class="fa-solid fa-arrows-rotate"></i>
+                {% elif n.notification_type == 'COMPLAINT' %}
+                <i class="fa-solid fa-screwdriver-wrench"></i>
+                {% elif n.notification_type == 'FEE' %}
+                <i class="fa-solid fa-receipt"></i>
+                {% elif n.notification_type == 'GATEPASS' %}
+                <i class="fa-solid fa-passport"></i>
+                {% else %}
+                <i class="fa-solid fa-bullhorn"></i>
+                {% endif %}
+            </div>
+
+            <!-- Content -->
+            <div class="flex-1 min-w-0">
+                <div class="flex items-center justify-between gap-2">
+                    <h3 class="text-xs font-bold text-slate-900 truncate">{{ n.title }}</h3>
+                    <span class="text-[11px] text-slate-400 font-mono shrink-0">{{ n.created_at|timesince }} ago</span>
+                </div>
+                <p class="text-xs text-slate-600 mt-1 leading-relaxed">{{ n.message }}</p>
+                
+                <div class="mt-2.5 flex items-center gap-3">
+                    {% if n.link_url %}
+                    <a href="{% url 'notification_mark_read' n.pk %}" class="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-600 hover:text-emerald-700">
+                        View Details &rarr;
+                    </a>
+                    {% endif %}
+                    {% if not n.is_read %}
+                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">
+                        New
+                    </span>
+                    {% endif %}
+                </div>
+            </div>
+
+        </div>
+        {% empty %}
+        <div class="py-16 text-center bg-white rounded-2xl border border-slate-200 text-slate-400">
+            <i class="fa-regular fa-bell text-4xl mb-2 text-slate-300 block"></i>
+            <h4 class="text-xs font-bold text-slate-700">No Notifications</h4>
+            <p class="text-[11px] text-slate-400 mt-1">You are completely up to date.</p>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    {% if page_obj.has_other_pages %}
+    <div class="flex items-center justify-between bg-white px-5 py-3 rounded-2xl border border-slate-200 text-xs">
+        <div>
+            <span class="text-slate-500">
+                Page <strong class="text-slate-800">{{ page_obj.number }}</strong> of <strong class="text-slate-800">{{ page_obj.paginator.num_pages }}</strong>
+            </span>
+        </div>
+        <div class="flex items-center gap-1">
+            {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}" class="px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-700">
+                &larr; Previous
+            </a>
+            {% endif %}
+            {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}" class="px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-700">
+                Next &rarr;
+            </a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}

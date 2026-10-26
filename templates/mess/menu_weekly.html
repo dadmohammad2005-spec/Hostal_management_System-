@@ -1,0 +1,134 @@
+{% extends 'mess/base_mess.html' %}
+
+{% block title %}Weekly Mess Menu - Ali Hall Hostel | IUB{% endblock %}
+{% block header_title %}7-Day Weekly Mess Menu & Dining Schedule{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+
+    <!-- Header Actions & Filters -->
+    <div class="mess-card p-4 mb-4">
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3">
+            <div>
+                <h5 class="fw-bold mb-0 text-dark">Weekly Dining Schedule</h5>
+                <small class="text-muted">Monday to Sunday official meal plan for Ali Hall hostel residents</small>
+            </div>
+            {% if user.is_staff or user.role == 'ADMIN' or user.role == 'WARDEN' %}
+            <a href="{% url 'menu_create' %}" class="btn btn-success btn-sm fw-semibold rounded-pill px-3 shadow-sm">
+                <i class="fa-solid fa-plus me-1"></i> Add / Schedule Meal
+            </a>
+            {% endif %}
+        </div>
+
+        <!-- Filter bar -->
+        <form method="GET" class="row g-2 pt-2 border-top">
+            <div class="col-md-5">
+                <select name="day" class="form-select form-select-sm">
+                    <option value="">All Days (Full Week)</option>
+                    {% for d_code, d_name in days %}
+                    <option value="{{ d_code }}" {% if day_filter == d_code %}selected{% endif %}>{{ d_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-5">
+                <select name="meal_type" class="form-select form-select-sm">
+                    <option value="">All Meal Types</option>
+                    {% for m_code, m_name in meal_types %}
+                    <option value="{{ m_code }}" {% if meal_filter == m_code %}selected{% endif %}>{{ m_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2 d-flex gap-1">
+                <button type="submit" class="btn btn-success btn-sm w-100 fw-semibold">Filter</button>
+                <a href="{% url 'menu_weekly' %}" class="btn btn-light btn-sm border" title="Reset Filters"><i class="fa-solid fa-rotate-left"></i></a>
+            </div>
+        </form>
+    </div>
+
+    <!-- 7-Day Matrix -->
+    <div class="row g-4">
+        {% for day_code, day_name in days %}
+        {% if not day_filter or day_filter == day_code %}
+        <div class="col-12">
+            <div class="mess-card overflow-hidden {% if day_code == current_day_name %}border-2 border-success{% endif %}">
+                <!-- Day Header -->
+                <div class="p-3 {% if day_code == current_day_name %}bg-success text-white{% else %}bg-light text-dark border-bottom{% endif %} d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="fa-solid fa-calendar-day"></i>
+                        <h6 class="mb-0 fw-bold text-uppercase tracking-wider">{{ day_name }}</h6>
+                    </div>
+                    {% if day_code == current_day_name %}
+                    <span class="badge bg-white text-success fw-bold px-3 py-1 rounded-pill shadow-sm">
+                        Today's Menu
+                    </span>
+                    {% endif %}
+                </div>
+
+                <!-- 4 Meal Cards Grid for this day -->
+                <div class="p-3">
+                    <div class="row g-3">
+                        {% for meal_code, meal_name in meal_types %}
+                        {% if not meal_filter or meal_filter == meal_code %}
+                        <div class="col-xl-3 col-md-6">
+                            <div class="p-3 rounded-3 border bg-light h-100 d-flex flex-column justify-content-between">
+                                <div>
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <span class="badge 
+                                            {% if meal_code == 'BREAKFAST' %}bg-warning text-dark
+                                            {% elif meal_code == 'LUNCH' %}bg-success
+                                            {% elif meal_code == 'EVENING_TEA' %}bg-secondary
+                                            {% else %}bg-info text-dark{% endif %} px-2.5 py-1 fw-bold">
+                                            {{ meal_name }}
+                                        </span>
+                                    </div>
+
+                                    <!-- Retrieve menu from matrix -->
+                                    {% for d_k, meals in weekly_grid.items %}
+                                        {% if d_k == day_code %}
+                                            {% for m_k, menu_obj in meals.items %}
+                                                {% if m_k == meal_code %}
+                                                    <div class="mb-2">
+                                                        <small class="text-muted d-block fw-semibold" style="font-size: 0.72rem;">
+                                                            <i class="fa-regular fa-clock me-1 text-success"></i>{{ menu_obj.serving_time }}
+                                                        </small>
+                                                        <h6 class="fw-bold text-dark mt-1 mb-1">{{ menu_obj.menu_items }}</h6>
+                                                        {% if menu_obj.special_instructions %}
+                                                        <small class="text-muted fst-italic d-block mb-2">Note: {{ menu_obj.special_instructions }}</small>
+                                                        {% endif %}
+
+                                                        {% if menu_obj.food_image %}
+                                                        <div class="mt-2 rounded-2 overflow-hidden border">
+                                                            <img src="{{ menu_obj.food_image.url }}" alt="{{ meal_name }}" class="img-fluid" style="height: 120px; width: 100%; object-fit: cover;">
+                                                        </div>
+                                                        {% endif %}
+                                                    </div>
+
+                                                    {% if user.is_staff or user.role == 'ADMIN' or user.role == 'WARDEN' %}
+                                                    <div class="d-flex justify-content-end gap-1 pt-2 border-top mt-auto">
+                                                        <a href="{% url 'menu_edit' menu_obj.pk %}" class="btn btn-light btn-sm text-success py-0 px-2" title="Edit">
+                                                            <i class="fa-solid fa-pen-to-square"></i>
+                                                        </a>
+                                                        <a href="{% url 'menu_delete' menu_obj.pk %}" class="btn btn-light btn-sm text-danger py-0 px-2" title="Delete">
+                                                            <i class="fa-solid fa-trash"></i>
+                                                        </a>
+                                                    </div>
+                                                    {% endif %}
+                                                {% endif %}
+                                            {% endfor %}
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        {% endfor %}
+    </div>
+
+</div>
+{% endblock %}

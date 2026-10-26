@@ -1,0 +1,55 @@
+{% extends 'mess/base_mess.html' %}
+
+{% block title %}Update Profile - Ali Hall Mess | IUB{% endblock %}
+{% block header_title %}Update My Profile Details{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="mess-card p-4">
+            <div class="text-center mb-4 border-bottom pb-3">
+                <div class="mb-2">
+                    {% if profile.profile_pic %}
+                    <img src="{{ profile.profile_pic.url }}" alt="{{ profile.full_name }}" class="student-avatar-lg">
+                    {% else %}
+                    <div class="student-avatar-lg bg-success text-white d-inline-flex align-items-center justify-center font-bold" style="font-size: 2rem;">
+                        {{ profile.initials }}
+                    </div>
+                    {% endif %}
+                </div>
+                <h5 class="fw-bold mb-0 text-dark">{{ profile.full_name }}</h5>
+                <small class="text-muted">Roll: {{ profile.student_id }} &bull; Room: {{ profile.hostel_room_no }}</small>
+            </div>
+
+            <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+
+                <div class="mb-3">
+                    <label class="form-label small fw-bold">Mobile Phone Number *</label>
+                    {{ form.phone_number }}
+                    {% if form.phone_number.errors %}<div class="text-danger small mt-1">{{ form.phone_number.errors.0 }}</div>{% endif %}
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label small fw-bold">Emergency Contact (Father / Guardian) *</label>
+                    {{ form.emergency_contact }}
+                    {% if form.emergency_contact.errors %}<div class="text-danger small mt-1">{{ form.emergency_contact.errors.0 }}</div>{% endif %}
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label small fw-bold">Update Profile Picture (Max 5MB - JPG, PNG, WebP)</label>
+                    {{ form.profile_pic }}
+                    {% if form.profile_pic.errors %}<div class="text-danger small mt-1">{{ form.profile_pic.errors.0 }}</div>{% endif %}
+                </div>
+
+                <div class="d-flex justify-content-end gap-2 border-top pt-3">
+                    <a href="{% url 'student_mess_portal' %}" class="btn btn-light px-4">Cancel</a>
+                    <button type="submit" class="btn btn-success fw-semibold px-4">
+                        <i class="fa-solid fa-floppy-disk me-1"></i> Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

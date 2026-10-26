@@ -1,0 +1,39 @@
+# Virtual Environments
+venv/
+.venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# Python cache & bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyd
+
+# Django Collected Static Files (source files are in /static/)
+staticfiles/
+
+# Environment Variables & Local Secrets
+.env
+.env.*
+!.env.example
+local_settings.py
+
+# Logs & Temporary Files
+*.log
+*.pot
+*.bak
+*.tmp
+
+# IDE / Code Editor Settings
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Operating System Files
+.DS_Store
+Thumbs.db
+desktop.ini

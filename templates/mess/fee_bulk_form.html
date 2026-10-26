@@ -1,0 +1,66 @@
+{% extends 'mess/base_mess.html' %}
+
+{% block title %}Bulk Mess Invoicing - Ali Hall Mess | IUB{% endblock %}
+{% block header_title %}Batch Mess Invoicing Generator{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-7">
+        <div class="mess-card p-4">
+            <div class="d-flex align-items-center justify-content-between mb-4 border-bottom pb-3">
+                <div>
+                    <h5 class="fw-bold mb-0 text-dark">Generate Monthly Mess Invoices</h5>
+                    <small class="text-muted">Creates invoices automatically for all currently active mess residents</small>
+                </div>
+                <a href="{% url 'fee_list' %}" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+                    &larr; Fee Records
+                </a>
+            </div>
+
+            <div class="alert alert-success d-flex align-items-center gap-2 mb-4">
+                <i class="fa-solid fa-wand-magic-sparkles fs-4"></i>
+                <div class="small">
+                    <strong>Batch Billing Engine:</strong> Every active student resident will have an invoice generated with their standard monthly rate. Duplicate invoices for the same student and month are automatically skipped.
+                </div>
+            </div>
+
+            <form method="POST">
+                {% csrf_token %}
+
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <label class="form-label small fw-bold">Billing Month Title *</label>
+                        {{ form.billing_month }}
+                        <small class="text-muted">e.g. November 2026</small>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small fw-bold">Cycle Month Date *</label>
+                        {{ form.month_date }}
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label small fw-bold">Default Monthly Rate (PKR / Rs.) *</label>
+                        {{ form.total_fee }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small fw-bold">Payment Due Date *</label>
+                        {{ form.due_date }}
+                    </div>
+
+                    <div class="col-12">
+                        <label class="form-label small fw-bold">Invoice Remarks / Bank Instructions</label>
+                        {{ form.remarks }}
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end gap-2 border-top pt-3">
+                    <a href="{% url 'fee_list' %}" class="btn btn-light px-4">Cancel</a>
+                    <button type="submit" class="btn btn-success fw-semibold px-4 shadow-sm">
+                        <i class="fa-solid fa-file-invoice-dollar me-1"></i> Generate Invoices Now
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

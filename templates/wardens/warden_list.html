@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+
+{% block title %}Hostel Wardens & Staff - Smart Hostel{% endblock %}
+{% block header_title %}Warden & Staff Management{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+
+    <!-- Header Card -->
+    <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+                <h2 class="text-lg font-bold text-slate-900">Hostel Wardens & Staff Roster</h2>
+                <p class="text-xs text-slate-500">Manage wardens, designate block supervisors, and configure granular system permissions</p>
+            </div>
+            <a href="{% url 'warden_create' %}" class="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-sm transition-colors">
+                <i class="fa-solid fa-user-plus"></i> Add New Warden
+            </a>
+        </div>
+    </div>
+
+    <!-- Wardens Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        {% for w in wardens %}
+        <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-4 hover:shadow-md transition-shadow">
+            
+            <!-- Warden Card Header -->
+            <div class="flex items-start gap-3">
+                {% if w.profile_pic %}
+                <img src="{{ w.profile_pic.url }}" alt="{{ w.username }}" class="w-12 h-12 rounded-xl object-cover border border-slate-200 shadow-xs">
+                {% else %}
+                <div class="w-12 h-12 rounded-xl bg-indigo-600 text-white font-bold flex items-center justify-center text-sm shadow-xs">
+                    {{ w.initials }}
+                </div>
+                {% endif %}
+
+                <div class="flex-1 min-w-0">
+                    <div class="flex items-center justify-between">
+                        <strong class="text-slate-900 font-bold text-sm block truncate">{{ w.get_full_name|default:w.username }}</strong>
+                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-800">
+                            Warden
+                        </span>
+                    </div>
+                    <span class="text-xs text-indigo-700 font-medium block truncate">{{ w.warden_designation|default:"Hostel Warden" }}</span>
+                    <span class="text-[11px] text-slate-400 font-mono block">@{{ w.username }}</span>
+                </div>
+            </div>
+
+            <!-- Block Assignment -->
+            <div class="p-3 rounded-xl bg-slate-50 border border-slate-100 space-y-1.5 text-xs">
+                <div class="flex items-center justify-between">
+                    <span class="text-slate-500">Assigned Block:</span>
+                    <strong class="text-slate-900 font-semibold">
+                        {% if w.assigned_block %}{{ w.assigned_block.block_name }}{% else %}All Ali Hall Blocks{% endif %}
+                    </strong>
+                </div>
+                <div class="flex items-center justify-between">
+                    <span class="text-slate-500">Phone:</span>
+                    <span class="text-slate-800">{{ w.phone_number|default:"N/A" }}</span>
+                </div>
+                <div class="flex items-center justify-between">
+                    <span class="text-slate-500">Email:</span>
+                    <span class="text-slate-800 truncate max-w-[150px]">{{ w.email|default:"N/A" }}</span>
+                </div>
+            </div>
+
+            <!-- Granular Permissions Badges -->
+            <div class="space-y-1.5 pt-1">
+                <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Assigned Permissions</span>
+                <div class="flex flex-wrap gap-1 text-[10px]">
+                    <span class="px-2 py-0.5 rounded font-semibold {% if w.can_manage_allocations %}bg-emerald-100 text-emerald-800{% else %}bg-slate-100 text-slate-400 line-through{% endif %}">
+                        Allocations
+                    </span>
+                    <span class="px-2 py-0.5 rounded font-semibold {% if w.can_manage_complaints %}bg-emerald-100 text-emerald-800{% else %}bg-slate-100 text-slate-400 line-through{% endif %}">
+                        Complaints
+                    </span>
+                    <span class="px-2 py-0.5 rounded font-semibold {% if w.can_manage_gatepasses %}bg-emerald-100 text-emerald-800{% else %}bg-slate-100 text-slate-400 line-through{% endif %}">
+                        Gate Passes
+                    </span>
+                    <span class="px-2 py-0.5 rounded font-semibold {% if w.can_manage_room_changes %}bg-emerald-100 text-emerald-800{% else %}bg-slate-100 text-slate-400 line-through{% endif %}">
+                        Room Changes
+                    </span>
+                </div>
+            </div>
+
+            <!-- Footer Action -->
+            <div class="pt-3 border-t border-slate-100 flex items-center justify-end">
+                <a href="{% url 'warden_edit' w.pk %}" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold transition-colors flex items-center gap-1.5">
+                    <i class="fa-solid fa-pen-to-square"></i> Edit Permissions
+                </a>
+            </div>
+
+        </div>
+        {% empty %}
+        <div class="col-span-3 text-center py-12 bg-white rounded-2xl border border-slate-200 text-slate-400 text-xs">
+            <i class="fa-solid fa-users text-3xl mb-2 text-slate-300 block"></i>
+            No wardens configured yet. Click "Add New Warden" above to register staff.
+        </div>
+        {% endfor %}
+    </div>
+
+</div>
+{% endblock %}

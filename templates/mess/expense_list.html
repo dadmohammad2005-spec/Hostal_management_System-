@@ -1,0 +1,154 @@
+{% extends 'mess/base_mess.html' %}
+
+{% block title %}Mess Operating Expenses - Ali Hall Mess | IUB{% endblock %}
+{% block header_title %}Mess Operating Expenses & Purchasing Ledger{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+
+    <!-- Top Card: Summary & Fast Actions -->
+    <div class="mess-card p-4 mb-4">
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3">
+            <div>
+                <h5 class="fw-bold mb-0 text-dark">Mess Expenses & Purchasing</h5>
+                <small class="text-muted">Kitchen supplies, food purchasing, groceries, gas cylinders, and maintenance</small>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <a href="{% url 'export_mess_expenses_csv' %}" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+                    <i class="fa-solid fa-file-csv me-1 text-success"></i> Export CSV
+                </a>
+                <a href="{% url 'expense_report' %}" class="btn btn-outline-primary btn-sm rounded-pill px-3">
+                    <i class="fa-solid fa-chart-pie me-1"></i> Financial Report
+                </a>
+                <button type="button" class="btn btn-danger btn-sm fw-semibold rounded-pill px-3 shadow-sm" data-bs-toggle="modal" data-bs-target="#addExpenseModal">
+                    <i class="fa-solid fa-plus me-1"></i> Record New Expense
+                </button>
+            </div>
+        </div>
+
+        <div class="p-3 rounded bg-light border d-flex justify-content-between align-items-center mb-3">
+            <span class="text-muted small text-uppercase fw-bold">Total Expenses Listed:</span>
+            <h4 class="fw-bold mb-0 text-danger">Rs. {{ total_expense_amount|floatformat:0 }}</h4>
+        </div>
+
+        <!-- Filter bar -->
+        <form method="GET" class="row g-2 pt-2 border-top">
+            <div class="col-md-5">
+                <select name="category" class="form-select form-select-sm">
+                    <option value="">All Categories</option>
+                    {% for code, label in categories %}
+                    <option value="{{ code }}" {% if category_filter == code %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-5">
+                <input type="month" name="month" value="{{ month_filter }}" class="form-control form-control-sm" placeholder="Month">
+            </div>
+            <div class="col-md-2 d-flex gap-1">
+                <button type="submit" class="btn btn-success btn-sm w-100 fw-semibold">Filter</button>
+                <a href="{% url 'expense_list' %}" class="btn btn-light btn-sm border" title="Reset"><i class="fa-solid fa-rotate-left"></i></a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Expenses Table -->
+    <div class="mess-card p-4">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0 small">
+                <thead class="table-light text-muted small text-uppercase">
+                    <tr>
+                        <th>Date</th>
+                        <th>Category</th>
+                        <th>Expense Heading / Title</th>
+                        <th>Amount (PKR)</th>
+                        <th>Description / Vendor</th>
+                        <th>Recorded By</th>
+                        <th>Receipt</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for exp in expenses %}
+                    <tr>
+                        <td class="fw-semibold">{{ exp.expense_date|date:"M d, Y" }}</td>
+                        <td>
+                            <span class="badge 
+                                {% if exp.category == 'FOOD' %}bg-warning text-dark
+                                {% elif exp.category == 'GROCERY' %}bg-success
+                                {% elif exp.category == 'UTILITY' %}bg-info text-dark
+                                {% else %}bg-secondary{% endif %} px-2.5 py-1">
+                                {{ exp.get_category_display }}
+                            </span>
+                        </td>
+                        <td class="fw-bold text-dark">{{ exp.title }}</td>
+                        <td class="fw-bold text-danger fs-6">Rs. {{ exp.amount }}</td>
+                        <td class="text-muted">{{ exp.description|default:"-" }}</td>
+                        <td class="text-muted">{{ exp.recorded_by.username|default:"Staff" }}</td>
+                        <td>
+                            {% if exp.bill_receipt %}
+                            <a href="{{ exp.bill_receipt.url }}" target="_blank" class="btn btn-light btn-sm text-primary py-0 px-2" title="View Bill Receipt">
+                                <i class="fa-solid fa-paperclip me-1"></i> Bill
+                            </a>
+                            {% else %}
+                            <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center text-muted py-5">No expenses recorded for this period.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+<!-- Modal: Record New Expense -->
+<div class="modal fade" id="addExpenseModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content mess-card border-0">
+            <div class="modal-header border-bottom">
+                <h5 class="modal-title fw-bold text-dark"><i class="fa-solid fa-receipt text-danger me-2"></i>Record Mess Expense</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="modal-body p-4 space-y-3">
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Expense Category *</label>
+                        {{ form.category }}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Expense Title / Item *</label>
+                        {{ form.title }}
+                    </div>
+                    <div class="row g-2 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Date *</label>
+                            {{ form.expense_date }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Amount (Rs.) *</label>
+                            {{ form.amount }}
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Vendor Details / Breakdown</label>
+                        {{ form.description }}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Upload Bill Receipt / Invoice</label>
+                        {{ form.bill_receipt }}
+                    </div>
+                </div>
+                <div class="modal-footer border-top">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-danger fw-semibold">Save Expense</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

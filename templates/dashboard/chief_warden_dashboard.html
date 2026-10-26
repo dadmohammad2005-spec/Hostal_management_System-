@@ -1,0 +1,329 @@
+{% extends 'base.html' %}
+
+{% block title %}Chief Warden Operations Center - Ali Hall Hostel | IUB{% endblock %}
+{% block header_title %}Chief Warden Executive Operations Portal{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+
+    <!-- Top Executive Action & Welcome Bar -->
+    <div class="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white rounded-3xl p-6 sm:p-8 shadow-md border border-slate-800">
+        <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
+            <div class="space-y-1">
+                <div class="flex items-center space-x-2">
+                    <span class="px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 uppercase tracking-wider">
+                        Executive Oversight
+                    </span>
+                    <span class="text-xs text-slate-400">Baghdad-ul-Jadeed Campus</span>
+                </div>
+                <h2 class="text-2xl sm:text-3xl font-extrabold tracking-tight">Chief Hall Warden Portal</h2>
+                <p class="text-xs text-slate-300">Overseeing Ali Hall Hostel wings, warden supervisory duties, and resident student affairs.</p>
+            </div>
+
+            <!-- Quick Jump Actions -->
+            <div class="flex flex-wrap items-center gap-2.5">
+                <a href="{% url 'student_cnic_search' %}" class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl text-xs font-bold shadow-lg shadow-emerald-600/25 transition-all inline-flex items-center space-x-2">
+                    <i class="fa-solid fa-id-card"></i>
+                    <span>Search Student by CNIC</span>
+                </a>
+                <a href="{% url 'room_inventory' %}" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-white rounded-2xl text-xs font-bold border border-slate-700 transition-all inline-flex items-center space-x-2">
+                    <i class="fa-solid fa-door-open"></i>
+                    <span>300 Rooms Matrix</span>
+                </a>
+                <a href="{% url 'student_directory' %}" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-white rounded-2xl text-xs font-bold border border-slate-700 transition-all inline-flex items-center space-x-2">
+                    <i class="fa-solid fa-user-graduate"></i>
+                    <span>Student Dossiers</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick CNIC Search Bar -->
+    <div class="bg-white p-5 rounded-3xl border border-slate-200/80 shadow-xs">
+        <form method="GET" action="{% url 'student_cnic_search' %}" class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+            <div class="relative flex-1">
+                <span class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-slate-400 text-sm">
+                    <i class="fa-solid fa-id-card"></i>
+                </span>
+                <input type="text" name="cnic" required
+                    placeholder="Search any student by CNIC number (e.g. 5440166878999 or 54401-6687899-9)..."
+                    class="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-300 rounded-2xl text-slate-900 placeholder-slate-400 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono">
+            </div>
+            <button type="submit" class="px-6 py-3 bg-emerald-700 hover:bg-emerald-800 text-white rounded-2xl text-xs font-bold shadow-xs transition-colors shrink-0 flex items-center justify-center space-x-2">
+                <i class="fa-solid fa-search"></i>
+                <span>Lookup CNIC</span>
+            </button>
+        </form>
+    </div>
+
+    <!-- High-Level Capacity & Operations Telemetry -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        <div class="bg-white p-5 rounded-3xl border border-slate-200/80 shadow-xs">
+            <div class="flex items-center justify-between mb-3">
+                <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Hostel Capacity</span>
+                <div class="w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-700 flex items-center justify-center">
+                    <i class="fa-solid fa-building text-lg"></i>
+                </div>
+            </div>
+            <div class="flex items-baseline space-x-2">
+                <span class="text-3xl font-extrabold text-slate-900">{{ occupancy_pct }}%</span>
+                <span class="text-xs text-slate-500 font-medium">({{ occupied_beds }}/{{ total_beds }} Beds)</span>
+            </div>
+            <div class="w-full bg-slate-100 rounded-full h-2 mt-3 overflow-hidden">
+                <div class="bg-emerald-600 h-2 rounded-full" style="width: {{ occupancy_pct }}%"></div>
+            </div>
+            <div class="flex items-center justify-between text-[11px] text-slate-500 mt-2.5">
+                <span>300 Rooms / 600 Beds</span>
+                <span class="text-emerald-700 font-bold">{{ available_beds }} Vacant</span>
+            </div>
+        </div>
+
+        <div class="bg-white p-5 rounded-3xl border border-slate-200/80 shadow-xs">
+            <div class="flex items-center justify-between mb-3">
+                <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Resident Scholars</span>
+                <div class="w-10 h-10 rounded-2xl bg-blue-50 text-blue-700 flex items-center justify-center">
+                    <i class="fa-solid fa-user-graduate text-lg"></i>
+                </div>
+            </div>
+            <div class="flex items-baseline space-x-2">
+                <span class="text-3xl font-extrabold text-slate-900">{{ total_students }}</span>
+                <span class="text-xs text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded-full">Registered</span>
+            </div>
+            <p class="text-[11px] text-slate-500 mt-4 pt-2 border-t border-slate-100">
+                Allotments: <strong class="text-slate-900">{{ occupied_beds }} active</strong> residents
+            </p>
+        </div>
+
+        <div class="bg-white p-5 rounded-3xl border border-slate-200/80 shadow-xs">
+            <div class="flex items-center justify-between mb-3">
+                <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Warden Staff</span>
+                <div class="w-10 h-10 rounded-2xl bg-indigo-50 text-indigo-700 flex items-center justify-center">
+                    <i class="fa-solid fa-user-shield text-lg"></i>
+                </div>
+            </div>
+            <div class="flex items-baseline space-x-2">
+                <span class="text-3xl font-extrabold text-slate-900">{{ wardens|length }}</span>
+                <span class="text-xs text-indigo-700 font-bold bg-indigo-50 px-2 py-0.5 rounded-full">Supervised</span>
+            </div>
+            <p class="text-[11px] text-slate-500 mt-4 pt-2 border-t border-slate-100">
+                Covering Quaid, Iqbal, & Sir Syed Wings
+            </p>
+        </div>
+
+        <div class="bg-white p-5 rounded-3xl border border-slate-200/80 shadow-xs">
+            <div class="flex items-center justify-between mb-3">
+                <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Fee Collections</span>
+                <div class="w-10 h-10 rounded-2xl bg-amber-50 text-amber-700 flex items-center justify-center">
+                    <i class="fa-solid fa-receipt text-lg"></i>
+                </div>
+            </div>
+            <div class="flex items-baseline space-x-2">
+                <span class="text-2xl font-extrabold text-slate-900">Rs. {{ total_collected }}</span>
+            </div>
+            <p class="text-[11px] text-slate-500 mt-4 pt-2 border-t border-slate-100 flex items-center justify-between">
+                <span>Pending Verifications:</span>
+                <strong class="text-amber-700 font-extrabold">{{ pending_vouchers_count }}</strong>
+            </p>
+        </div>
+    </div>
+
+    <!-- 3 Blocks Matrix (Quaid, Iqbal, Sir Syed) -->
+    <div class="bg-white rounded-3xl border border-slate-200/80 shadow-xs p-6 space-y-4">
+        <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+            <div>
+                <h3 class="font-bold text-slate-900 text-base">Hostel Wings & Quota Allocation Status</h3>
+                <p class="text-xs text-slate-500">Floor-wise capacity, merit distribution, and special quota tracking</p>
+            </div>
+            <a href="{% url 'room_inventory' %}" class="text-xs font-bold text-emerald-700 hover:underline">
+                View All 300 Rooms &rarr;
+            </a>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+            {% for b_info in blocks_data %}
+            <div class="p-5 rounded-2xl border border-slate-200 bg-slate-50/60 space-y-3">
+                <div class="flex items-center justify-between">
+                    <h4 class="font-extrabold text-slate-900 text-sm">{{ b_info.block.block_name }}</h4>
+                    <span class="text-xs font-extrabold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
+                        {{ b_info.occupancy_rate }}%
+                    </span>
+                </div>
+                <p class="text-[11px] text-slate-500 leading-relaxed">{{ b_info.block.description|default:"Hostel Residential Wing" }}</p>
+
+                <div class="space-y-1.5 pt-2 border-t border-slate-200/60 text-xs">
+                    <div class="flex justify-between text-slate-600">
+                        <span>Total Rooms:</span>
+                        <strong class="text-slate-900">{{ b_info.total_rooms }} Rooms</strong>
+                    </div>
+                    <div class="flex justify-between text-slate-600">
+                        <span>Occupied Beds:</span>
+                        <strong class="text-emerald-700 font-bold">{{ b_info.occupied_beds }} / {{ b_info.total_beds }}</strong>
+                    </div>
+                    <div class="flex justify-between text-slate-600">
+                        <span>Available Spaces:</span>
+                        <strong class="text-slate-900">{{ b_info.available_beds }} Spaces</strong>
+                    </div>
+                </div>
+
+                <div class="w-full bg-slate-200 rounded-full h-1.5 overflow-hidden">
+                    <div class="bg-emerald-600 h-1.5 rounded-full" style="width: {{ b_info.occupancy_rate }}%"></div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Wardens Supervisory Roster (Monitor Wardens) -->
+    <div class="bg-white rounded-3xl border border-slate-200/80 shadow-xs p-6 space-y-4">
+        <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-2xl bg-purple-50 text-purple-700 flex items-center justify-center font-bold text-lg">
+                    <i class="fa-solid fa-user-shield"></i>
+                </div>
+                <div>
+                    <h3 class="font-bold text-slate-900 text-base">Hostel Wardens Supervisory Roster</h3>
+                    <p class="text-xs text-slate-500">Monitor warden duties, block jurisdictions, and active workload</p>
+                </div>
+            </div>
+            <a href="{% url 'warden_create' %}" class="px-3.5 py-1.5 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-bold transition-colors">
+                + Register Warden
+            </a>
+        </div>
+
+        <div class="overflow-x-auto rounded-2xl border border-slate-200/80">
+            <table class="w-full text-left text-xs text-slate-700">
+                <thead class="bg-slate-50 text-[11px] font-bold text-slate-500 uppercase tracking-wider border-b border-slate-200">
+                    <tr>
+                        <th class="py-3 px-4">Warden / Officer</th>
+                        <th class="py-3 px-4">Designation</th>
+                        <th class="py-3 px-4">Assigned Block</th>
+                        <th class="py-3 px-4">Contact Phone</th>
+                        <th class="py-3 px-4">Open Complaints</th>
+                        <th class="py-3 px-4">Permissions</th>
+                        <th class="py-3 px-4 text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    {% for w in wardens %}
+                    <tr class="hover:bg-slate-50/80 transition-colors">
+                        <td class="py-3 px-4">
+                            <div class="flex items-center space-x-2.5">
+                                <div class="w-8 h-8 rounded-full bg-slate-200 text-slate-700 flex items-center justify-center font-bold text-xs">
+                                    {{ w.initials }}
+                                </div>
+                                <div>
+                                    <span class="font-bold text-slate-900 block">{{ w.get_full_name|default:w.username }}</span>
+                                    <span class="text-[11px] text-slate-400 font-mono">{{ w.username }}</span>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="py-3 px-4 text-slate-800 font-medium">
+                            {{ w.warden_designation|default:"Hostel Warden" }}
+                        </td>
+                        <td class="py-3 px-4 font-semibold text-slate-900">
+                            {{ w.assigned_block.block_name|default:"All Blocks (General)" }}
+                        </td>
+                        <td class="py-3 px-4 font-mono text-slate-600">
+                            {{ w.phone_number|default:"-" }}
+                        </td>
+                        <td class="py-3 px-4">
+                            <span class="px-2.5 py-0.5 rounded-full text-[11px] font-extrabold {% if w.assigned_complaints_count > 0 %}bg-amber-100 text-amber-800{% else %}bg-slate-100 text-slate-600{% endif %}">
+                                {{ w.assigned_complaints_count }} open
+                            </span>
+                        </td>
+                        <td class="py-3 px-4 text-[11px] text-slate-500">
+                            {% if w.can_manage_allocations %}<span class="text-emerald-700 font-bold">Alloc</span>{% endif %}
+                            {% if w.can_manage_complaints %}&bull; <span class="text-blue-700 font-bold">Compl</span>{% endif %}
+                            {% if w.can_manage_room_changes %}&bull; <span class="text-cyan-700 font-bold">Transf</span>{% endif %}
+                        </td>
+                        <td class="py-3 px-4 text-right">
+                            <a href="{% url 'warden_edit' w.pk %}" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold transition-colors">
+                                Edit
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="py-6 text-center text-slate-400">No wardens registered yet.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Escalated Transfers & Urgent Complaints Split Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+        <!-- Escalated Room Transfers -->
+        <div class="bg-white rounded-3xl border border-slate-200/80 shadow-xs p-6 space-y-4">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                <div class="flex items-center space-x-2">
+                    <i class="fa-solid fa-arrows-split-up-and-left text-cyan-600"></i>
+                    <h3 class="font-bold text-slate-900 text-sm">Escalated Room Change Requests</h3>
+                </div>
+                <a href="{% url 'room_change_list' %}" class="text-xs font-bold text-cyan-700 hover:underline">View All &rarr;</a>
+            </div>
+
+            {% if escalated_transfers %}
+            <div class="divide-y divide-slate-100">
+                {% for r in escalated_transfers %}
+                <div class="py-3 flex items-center justify-between gap-3 text-xs">
+                    <div>
+                        <span class="font-bold text-slate-900 block">{{ r.student.get_full_name|default:r.student.username }} (Room {{ r.current_room.room_number }})</span>
+                        <span class="text-[11px] text-slate-500">Reason: {{ r.get_reason_category_display }}</span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-cyan-100 text-cyan-800">
+                            {{ r.get_status_display }}
+                        </span>
+                        <a href="{% url 'room_change_detail' r.pk %}" class="px-2 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold">
+                            Review
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="text-xs text-slate-400 italic">No room change requests pending review.</p>
+            {% endif %}
+        </div>
+
+        <!-- High Priority Complaints -->
+        <div class="bg-white rounded-3xl border border-slate-200/80 shadow-xs p-6 space-y-4">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                <div class="flex items-center space-x-2">
+                    <i class="fa-solid fa-wrench text-rose-600"></i>
+                    <h3 class="font-bold text-slate-900 text-sm">Urgent Maintenance Tickets</h3>
+                </div>
+                <a href="{% url 'complaint_list' %}" class="text-xs font-bold text-rose-700 hover:underline">View All &rarr;</a>
+            </div>
+
+            {% if urgent_complaints %}
+            <div class="divide-y divide-slate-100">
+                {% for c in urgent_complaints %}
+                <div class="py-3 flex items-center justify-between gap-3 text-xs">
+                    <div>
+                        <span class="font-bold text-slate-900 block">{{ c.title }}</span>
+                        <span class="text-[11px] text-slate-500">{{ c.get_category_display }} &bull; Assigned: {{ c.assigned_to.get_full_name|default:"Unassigned" }}</span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-rose-100 text-rose-800">
+                            {{ c.get_priority_display }}
+                        </span>
+                        <a href="{% url 'complaint_detail' c.pk %}" class="px-2 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold">
+                            View
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="text-xs text-slate-400 italic">No urgent maintenance tickets reported.</p>
+            {% endif %}
+        </div>
+
+    </div>
+
+</div>
+{% endblock %}

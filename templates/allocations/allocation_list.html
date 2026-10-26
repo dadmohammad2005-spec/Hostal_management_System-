@@ -1,0 +1,128 @@
+{% extends 'base.html' %}
+
+{% block title %}Room Allocations - Smart Hostel{% endblock %}
+{% block header_title %}Bed Allocations & Resident Directory{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+
+    <!-- Header Actions & Filters -->
+    <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+                <h2 class="text-lg font-bold text-slate-900">Room & Bed Allotments</h2>
+                <p class="text-xs text-slate-500">Manage student bed assignments with enforced zero double-booking</p>
+            </div>
+            <div class="flex items-center space-x-3">
+                <a href="{% url 'room_inventory' %}" class="inline-flex items-center space-x-2 px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg border border-slate-300 transition-colors">
+                    <i class="fa-solid fa-door-open"></i>
+                    <span>Room Grid</span>
+                </a>
+                <a href="{% url 'allocation_create' %}" class="inline-flex items-center space-x-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-lg shadow-sm transition-colors">
+                    <i class="fa-solid fa-plus"></i>
+                    <span>New Allotment</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Filter bar -->
+        <form method="GET" class="grid grid-cols-1 sm:grid-cols-4 gap-3 pt-4 border-t border-slate-100 text-xs">
+            <div class="sm:col-span-2">
+                <input type="text" name="q" value="{{ search_query }}" placeholder="Search by student name, roll no, room #, bed..." class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500">
+            </div>
+            <div>
+                <select name="status" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500">
+                    <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Active Allotments Only</option>
+                    <option value="vacated" {% if status_filter == 'vacated' %}selected{% endif %}>Vacated Allotments</option>
+                    <option value="all" {% if status_filter == 'all' %}selected{% endif %}>All Records</option>
+                </select>
+            </div>
+            <div class="flex items-center space-x-2">
+                <button type="submit" class="w-full py-2 bg-slate-800 hover:bg-slate-900 text-white font-semibold rounded-lg transition-colors">
+                    Filter
+                </button>
+                <a href="{% url 'allocation_list' %}" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg">Reset</a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Table of Allotments -->
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+                <thead class="bg-slate-50 text-slate-500 uppercase tracking-wider border-b border-slate-200 font-semibold">
+                    <tr>
+                        <th class="py-3.5 px-4">Student Resident</th>
+                        <th class="py-3.5 px-4">CNIC / Roll No</th>
+                        <th class="py-3.5 px-4">Hostel & Block</th>
+                        <th class="py-3.5 px-4">Room & Bed</th>
+                        <th class="py-3.5 px-4">Allotted Date</th>
+                        <th class="py-3.5 px-4">Status</th>
+                        <th class="py-3.5 px-4 text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 text-slate-700">
+                    {% for a in allotments %}
+                    <tr class="hover:bg-slate-50/80 transition-colors">
+                        <td class="py-3.5 px-4">
+                            <div class="flex items-center space-x-3">
+                                {% if a.student.profile_pic %}
+                                <img src="{{ a.student.profile_pic.url }}" alt="" class="w-8 h-8 rounded-full object-cover border border-slate-200">
+                                {% else %}
+                                <div class="w-8 h-8 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-600 flex items-center justify-center font-bold text-xs">
+                                    {{ a.student.first_name|first|default:a.student.username|first|upper }}
+                                </div>
+                                {% endif %}
+                                <div>
+                                    <span class="font-bold text-slate-900 block">{{ a.student.get_full_name|default:a.student.username }}</span>
+                                    <span class="text-slate-400 text-[11px]">{{ a.student.phone_number }}</span>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="py-3.5 px-4 font-mono font-medium">{{ a.student.cnic_or_id|default:"-" }}</td>
+                        <td class="py-3.5 px-4">
+                            <span class="font-semibold text-slate-800 block">{{ a.room.block.hostel.name }}</span>
+                            <span class="text-[11px] text-slate-500">{{ a.room.block.block_name }}</span>
+                        </td>
+                        <td class="py-3.5 px-4">
+                            <span class="font-semibold text-slate-900">Room {{ a.room.room_number }}</span>
+                            <span class="ml-1 px-1.5 py-0.5 rounded bg-indigo-50 text-indigo-700 font-bold border border-indigo-200 text-[11px]">{{ a.bed.bed_code }}</span>
+                        </td>
+                        <td class="py-3.5 px-4 text-slate-600">{{ a.allotment_date|date:"M d, Y" }}</td>
+                        <td class="py-3.5 px-4">
+                            {% if a.is_active %}
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5"></span>Active
+                            </span>
+                            {% else %}
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-600 border border-slate-200">
+                                Vacated ({{ a.vacate_date|date:"M d, Y"|default:"Past" }})
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td class="py-3.5 px-4 text-right">
+                            {% if a.is_active %}
+                            <a href="{% url 'allocation_vacate' a.pk %}" class="inline-flex items-center space-x-1 px-2.5 py-1 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-lg text-xs font-semibold transition-colors">
+                                <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                                <span>Vacate Bed</span>
+                            </a>
+                            {% else %}
+                            <span class="text-xs text-slate-400">Archived</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="py-12 text-center text-slate-400 text-sm">
+                            <i class="fa-solid fa-bed text-3xl mb-2 text-slate-300 block"></i>
+                            No allotment records found matching your criteria.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

@@ -1,0 +1,468 @@
+{% extends 'base.html' %}
+
+{% block title %}CNIC Search System - Ali Hall Hostel | IUB{% endblock %}
+{% block header_title %}Student CNIC Search & Records System{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+
+    <!-- Search Header & Input Box -->
+    <div class="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white rounded-3xl p-6 sm:p-8 shadow-md border border-slate-800">
+        <div class="max-w-3xl">
+            <div class="flex items-center space-x-3 mb-2">
+                <div class="w-10 h-10 rounded-2xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-lg border border-emerald-500/30">
+                    <i class="fa-solid fa-id-card"></i>
+                </div>
+                <div>
+                    <h2 class="text-xl sm:text-2xl font-extrabold text-white">Student CNIC Number Search</h2>
+                    <p class="text-xs text-slate-300">Search any resident student using their 13-digit Pakistani CNIC number</p>
+                </div>
+            </div>
+
+            <!-- Search Form -->
+            <form method="GET" action="{% url 'student_cnic_search' %}" class="mt-5">
+                <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                    <div class="relative flex-1">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-slate-400 text-sm">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                        </span>
+                        <input type="text" name="cnic" value="{{ cnic_query }}" required
+                            placeholder="Enter CNIC number e.g. 5440166878999 or 54401-6687899-9"
+                            class="w-full pl-11 pr-4 py-3.5 bg-slate-800/80 border border-slate-700 rounded-2xl text-white placeholder-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 font-mono tracking-wider">
+                    </div>
+                    <button type="submit" class="px-6 py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl font-bold text-xs uppercase tracking-wider shadow-lg shadow-emerald-600/25 transition-all flex items-center justify-center space-x-2 shrink-0">
+                        <i class="fa-solid fa-search"></i>
+                        <span>Search Records</span>
+                    </button>
+                </div>
+            </form>
+
+            <!-- Quick Demo CNIC Chips -->
+            <div class="mt-3.5 flex flex-wrap items-center gap-2 text-xs text-slate-400">
+                <span class="font-bold text-slate-300">Quick Test CNIC:</span>
+                <a href="{% url 'student_cnic_search' %}?cnic=5440166878999" class="px-2.5 py-1 rounded-lg bg-emerald-900/40 text-emerald-300 border border-emerald-700/50 hover:bg-emerald-900/70 font-mono transition-colors">
+                    5440166878999 (Example CNIC)
+                </a>
+                <a href="{% url 'student_cnic_search' %}?cnic=31202-1234567-1" class="px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 border border-slate-700 hover:bg-slate-700 font-mono transition-colors">
+                    31202-1234567-1
+                </a>
+                <a href="{% url 'student_cnic_search' %}?cnic=31202-7654321-3" class="px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 border border-slate-700 hover:bg-slate-700 font-mono transition-colors">
+                    31202-7654321-3
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Error / Not Found Message -->
+    {% if error_message %}
+    <div class="p-5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 flex items-start space-x-3 text-sm">
+        <div class="w-8 h-8 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center font-bold text-base shrink-0 mt-0.5">
+            <i class="fa-solid fa-circle-xmark"></i>
+        </div>
+        <div>
+            <h4 class="font-bold">Student Record Not Found</h4>
+            <p class="text-xs text-rose-700 mt-1">{{ error_message }}</p>
+            <p class="text-xs text-rose-600 mt-1">Try clicking the example CNIC chip <a href="{% url 'student_cnic_search' %}?cnic=5440166878999" class="font-mono font-bold underline">5440166878999</a> above.</p>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Multiple Matches List (if search was partial) -->
+    {% if all_matches %}
+    <div class="bg-white rounded-3xl border border-slate-200/80 shadow-xs p-6 space-y-4">
+        <h3 class="text-base font-bold text-slate-900 flex items-center space-x-2">
+            <i class="fa-solid fa-users text-indigo-600"></i>
+            <span>Multiple Students Found ({{ all_matches|length }})</span>
+        </h3>
+        <p class="text-xs text-slate-500">Select the student below to inspect their complete CNIC record dossier:</p>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {% for m in all_matches %}
+            <div class="p-4 rounded-2xl border border-slate-200 bg-slate-50/60 hover:bg-slate-50 flex items-center justify-between">
+                <div>
+                    <h4 class="text-xs font-bold text-slate-900">{{ m.get_full_name|default:m.username }}</h4>
+                    <p class="text-[11px] text-slate-500 font-mono">CNIC: {{ m.cnic|default:m.cnic_or_id }}</p>
+                    <p class="text-[11px] text-emerald-700 font-semibold">Roll: {{ m.registration_no }}</p>
+                </div>
+                <a href="{% url 'student_cnic_search' %}?id={{ m.pk }}" class="px-3 py-1.5 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-xs font-bold transition-colors">
+                    View &rarr;
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Single Student Comprehensive Dossier -->
+    {% if student %}
+    <div class="space-y-6">
+
+        <!-- 1. Student Identity Header Card -->
+        <div class="bg-white rounded-3xl border border-slate-200/80 shadow-xs p-6 sm:p-8 relative overflow-hidden">
+            <div class="flex flex-col sm:flex-row items-center sm:items-start justify-between gap-6">
+                <div class="flex flex-col sm:flex-row items-center sm:items-start space-y-4 sm:space-y-0 sm:space-x-5 text-center sm:text-left">
+                    {% if student.profile_pic %}
+                    <img src="{{ student.profile_pic.url }}" alt="{{ student.username }}" class="w-24 h-24 rounded-3xl object-cover border-4 border-slate-100 shadow-md bg-slate-50 shrink-0">
+                    {% else %}
+                    <div class="w-24 h-24 rounded-3xl bg-gradient-to-br from-emerald-600 to-teal-800 text-white flex items-center justify-center font-extrabold text-3xl shadow-md shrink-0">
+                        {{ student.initials }}
+                    </div>
+                    {% endif %}
+                    <div>
+                        <div class="flex flex-wrap items-center justify-center sm:justify-start gap-2">
+                            <h2 class="text-2xl font-extrabold text-slate-900">{{ student.get_full_name|default:student.username }}</h2>
+                            <span class="inline-flex items-center px-3 py-0.5 rounded-full text-xs font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-300">
+                                <i class="fa-solid fa-shield-halved me-1 text-[10px]"></i> Verified Resident
+                            </span>
+                        </div>
+                        <div class="mt-2 flex flex-wrap items-center justify-center sm:justify-start gap-2">
+                            <span class="px-3 py-1 rounded-xl bg-slate-100 font-mono font-bold text-xs text-slate-800 border border-slate-200">
+                                <i class="fa-solid fa-id-card me-1 text-slate-400"></i> CNIC: <strong class="text-emerald-700">{{ student.cnic|default:student.cnic_or_id }}</strong>
+                            </span>
+                            <span class="px-3 py-1 rounded-xl bg-slate-100 font-mono font-bold text-xs text-slate-800 border border-slate-200">
+                                <i class="fa-solid fa-graduation-cap me-1 text-slate-400"></i> Roll No: <strong>{{ student.registration_no|default:"Not Assigned" }}</strong>
+                            </span>
+                        </div>
+                        <p class="text-xs text-slate-500 mt-2">
+                            <i class="fa-solid fa-envelope me-1"></i> {{ student.email }} &bull;
+                            <i class="fa-solid fa-phone me-1"></i> {{ student.phone_number|default:"Not provided" }}
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Residency Badge & Status -->
+                <div class="text-center sm:text-right shrink-0 space-y-2">
+                    <span class="inline-flex items-center px-3.5 py-1.5 rounded-full text-xs font-bold
+                        {% if student.application_status == 'ALLOCATED' %}bg-emerald-100 text-emerald-800 border border-emerald-200
+                        {% elif student.application_status == 'APPROVED' %}bg-blue-100 text-blue-800 border border-blue-200
+                        {% elif student.application_status == 'REJECTED' %}bg-rose-100 text-rose-800 border border-rose-200
+                        {% else %}bg-amber-100 text-amber-800 border border-amber-200{% endif %}">
+                        <i class="fa-solid fa-circle-dot mr-1.5 text-[10px]"></i>
+                        {{ student.get_application_status_display }}
+                    </span>
+                    <p class="text-xs text-slate-400">Joined: {{ student.date_joined|date:"M d, Y" }}</p>
+                </div>
+            </div>
+
+            <!-- Quick Contacts & Address Strip -->
+            <div class="mt-6 pt-5 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
+                <div>
+                    <span class="text-slate-400 block font-semibold mb-0.5">Emergency Contact</span>
+                    <span class="font-bold text-slate-800">{{ student.emergency_contact|default:"Not Provided" }}</span>
+                </div>
+                <div class="sm:col-span-2">
+                    <span class="text-slate-400 block font-semibold mb-0.5">Permanent Residential Address</span>
+                    <span class="font-semibold text-slate-700">{{ student.address|default:"Not on record" }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. Academic & Semester Details Card -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+            <div class="bg-white rounded-3xl border border-slate-200/80 shadow-xs p-6 space-y-4">
+                <div class="flex items-center space-x-3 pb-3 border-b border-slate-100">
+                    <div class="w-10 h-10 rounded-2xl bg-teal-50 text-teal-700 flex items-center justify-center font-bold text-lg">
+                        <i class="fa-solid fa-graduation-cap"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-slate-900 text-sm">Academic & Semester Details</h3>
+                        <p class="text-[11px] text-slate-400">Current University Status</p>
+                    </div>
+                </div>
+
+                <div class="space-y-3 text-xs">
+                    <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-100">
+                        <span class="text-slate-500 font-medium">Department:</span>
+                        <span class="font-bold text-slate-900">{{ student.department|default:"Computer Science" }}</span>
+                    </div>
+                    <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-100">
+                        <span class="text-slate-500 font-medium">Current Semester:</span>
+                        <span class="font-extrabold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md">
+                            Semester {{ student.semester|default:"-" }}
+                        </span>
+                    </div>
+                    <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-100">
+                        <span class="text-slate-500 font-medium">Registration / Roll No:</span>
+                        <span class="font-mono font-bold text-slate-900">{{ student.registration_no|default:student.cnic_or_id }}</span>
+                    </div>
+                    <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-100">
+                        <span class="text-slate-500 font-medium">Gender:</span>
+                        <span class="font-semibold text-slate-800">{{ student.get_gender_display }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. Hostel Room & Residency Card -->
+            <div class="lg:col-span-2 bg-white rounded-3xl border border-slate-200/80 shadow-xs p-6 space-y-4">
+                <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-700 flex items-center justify-center font-bold text-lg">
+                            <i class="fa-solid fa-door-open"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-slate-900 text-sm">Hostel Room & Residency Assignment</h3>
+                            <p class="text-[11px] text-slate-400">Ali Hall 300 Rooms Inventory</p>
+                        </div>
+                    </div>
+                    {% if active_allotment %}
+                    <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">
+                        Active Resident
+                    </span>
+                    {% else %}
+                    <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-600">
+                        No Active Room
+                    </span>
+                    {% endif %}
+                </div>
+
+                {% if active_allotment %}
+                <!-- Hostel & Admission Overview -->
+                <div class="p-3.5 rounded-2xl bg-emerald-50/60 border border-emerald-200/80 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-xs">
+                    <div>
+                        <span class="text-slate-500 font-semibold">Assigned Hostel:</span>
+                        <strong class="text-slate-900 ml-1">{{ active_allotment.room.block.hostel.name|default:"Ali Hall (Boys Hostel), IUB" }}</strong>
+                    </div>
+                    <div class="flex items-center space-x-3 text-[11px] text-slate-600">
+                        <span>Admission Date: <strong class="text-slate-800">{{ student.application_date|date:"M d, Y" }}</strong></span>
+                        <span>&bull;</span>
+                        <span>Allotted: <strong class="text-emerald-800">{{ active_allotment.allotment_date|date:"M d, Y" }}</strong></span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+                    <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200">
+                        <span class="text-slate-400 block font-semibold mb-1">Room Number</span>
+                        <span class="font-extrabold text-base text-slate-900">Room {{ active_allotment.room.room_number }}</span>
+                    </div>
+                    <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200">
+                        <span class="text-slate-400 block font-semibold mb-1">Bed Assigned</span>
+                        <span class="font-extrabold text-base text-emerald-700">{{ active_allotment.bed.bed_code }}</span>
+                    </div>
+                    <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200">
+                        <span class="text-slate-400 block font-semibold mb-1">Wing / Block</span>
+                        <span class="font-bold text-xs text-slate-800 truncate block">{{ active_allotment.room.block.block_name }}</span>
+                    </div>
+                    <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200">
+                        <span class="text-slate-400 block font-semibold mb-1">Floor & Quota</span>
+                        <span class="font-bold text-xs text-slate-800">Floor {{ active_allotment.room.floor }} ({{ active_allotment.room.quota_category_display }})</span>
+                    </div>
+                </div>
+
+                <!-- Assigned Roommates in Room -->
+                <div class="pt-2">
+                    <h4 class="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Roommates in Same Room:</h4>
+                    {% if roommates %}
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {% for rm in roommates %}
+                        <div class="p-3 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-between text-xs">
+                            <div class="flex items-center space-x-2.5">
+                                <div class="w-8 h-8 rounded-full bg-slate-200 text-slate-700 flex items-center justify-center font-bold text-xs">
+                                    {{ rm.student.initials }}
+                                </div>
+                                <div>
+                                    <p class="font-bold text-slate-900">{{ rm.student.get_full_name|default:rm.student.username }}</p>
+                                    <p class="text-[11px] text-slate-500 font-mono">{{ rm.student.registration_no }}</p>
+                                </div>
+                            </div>
+                            <span class="font-bold text-emerald-700 text-xs">{{ rm.bed.bed_code }}</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p class="text-xs text-slate-400 italic">No other resident allotted to this room yet. (Single occupant)</p>
+                    {% endif %}
+                </div>
+                {% else %}
+                <div class="p-6 rounded-2xl bg-slate-50 border border-slate-200 text-center text-slate-400 text-xs">
+                    <i class="fa-solid fa-bed text-3xl mb-2 text-slate-300"></i>
+                    <p class="font-semibold text-slate-600">This student does not currently hold an active room allotment.</p>
+                    <p class="mt-1">You can allocate a bed via the <a href="{% url 'allocation_create' %}" class="text-emerald-700 font-bold hover:underline">Bed Allocation Desk</a>.</p>
+                </div>
+                {% endif %}
+            </div>
+
+        </div>
+
+        <!-- 4. Fee Vouchers & Payment Records Card -->
+        <div class="bg-white rounded-3xl border border-slate-200/80 shadow-xs p-6 sm:p-8 space-y-5">
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-slate-100">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 rounded-2xl bg-amber-50 text-amber-700 flex items-center justify-center font-bold text-lg">
+                        <i class="fa-solid fa-receipt"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-slate-900 text-base">Fee Vouchers & Payment Records</h3>
+                        <p class="text-xs text-slate-500">Student financial ledger and uploaded payment slips</p>
+                    </div>
+                </div>
+                <!-- Totals Ribbon -->
+                <div class="flex flex-wrap items-center gap-2 text-xs">
+                    <span class="px-3 py-1.5 rounded-xl bg-slate-100 text-slate-700 font-semibold border border-slate-200">
+                        Total Hostel Fees: <strong>Rs. {{ fee_totals.billed }}</strong>
+                    </span>
+                    <span class="px-3 py-1.5 rounded-xl bg-emerald-50 text-emerald-800 font-semibold border border-emerald-200">
+                        Paid Amount: <strong>Rs. {{ fee_totals.paid }}</strong>
+                    </span>
+                    <span class="px-3 py-1.5 rounded-xl {% if fee_totals.balance > 0 %}bg-rose-50 text-rose-800 border border-rose-300 font-bold{% else %}bg-emerald-50 text-emerald-800 border border-emerald-200 font-semibold{% endif %}">
+                        Outstanding Balance: <strong>Rs. {{ fee_totals.balance }}</strong>
+                    </span>
+                    <span class="px-3 py-1.5 rounded-xl bg-amber-50 text-amber-800 font-semibold border border-amber-200">
+                        Pending Verification: <strong>Rs. {{ fee_totals.pending }}</strong>
+                    </span>
+                    {% if fee_totals.rejected > 0 %}
+                    <span class="px-3 py-1.5 rounded-xl bg-rose-50 text-rose-800 font-semibold border border-rose-200">
+                        Rejected: <strong>Rs. {{ fee_totals.rejected }}</strong>
+                    </span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Fee Vouchers Table -->
+            {% if fee_vouchers %}
+            <div class="overflow-x-auto rounded-2xl border border-slate-200/80">
+                <table class="w-full text-left text-xs text-slate-700">
+                    <thead class="bg-slate-50 text-[11px] font-bold text-slate-500 uppercase tracking-wider border-b border-slate-200">
+                        <tr>
+                            <th class="py-3 px-4">Voucher Code</th>
+                            <th class="py-3 px-4">Category & Month</th>
+                            <th class="py-3 px-4">Amount</th>
+                            <th class="py-3 px-4">Due Date</th>
+                            <th class="py-3 px-4">Status</th>
+                            <th class="py-3 px-4">Payment Proof</th>
+                            <th class="py-3 px-4 text-right">Verification Action</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
+                        {% for v in fee_vouchers %}
+                        <tr class="hover:bg-slate-50/80 transition-colors">
+                            <td class="py-3 px-4 font-mono font-bold text-slate-900">
+                                <a href="{% url 'fee_voucher_detail' v.pk %}" class="hover:text-emerald-700 hover:underline">
+                                    {{ v.voucher_code }}
+                                </a>
+                            </td>
+                            <td class="py-3 px-4">
+                                <span class="font-bold text-slate-800 block">{{ v.get_fee_type_display }}</span>
+                                <span class="text-[11px] text-slate-400">{{ v.billing_month }}</span>
+                                {% if v.transaction_id %}
+                                <span class="block text-[11px] font-mono text-emerald-700 font-semibold mt-0.5">
+                                    <i class="fa-solid fa-hashtag text-[10px]"></i> {{ v.transaction_id }}
+                                </span>
+                                {% endif %}
+                                {% if v.payment_method %}
+                                <span class="block text-[10px] text-slate-500">{{ v.payment_method }}</span>
+                                {% endif %}
+                            </td>
+                            <td class="py-3 px-4 font-extrabold text-slate-900">
+                                Rs. {{ v.amount }}
+                            </td>
+                            <td class="py-3 px-4">
+                                {{ v.due_date|date:"M d, Y" }}
+                            </td>
+                            <td class="py-3 px-4">
+                                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold
+                                    {% if v.status == 'PAID' %}bg-emerald-100 text-emerald-800 border border-emerald-200
+                                    {% elif v.status == 'PENDING_VERIFICATION' %}bg-amber-100 text-amber-800 border border-amber-200
+                                    {% elif v.status == 'REJECTED' %}bg-rose-100 text-rose-800 border border-rose-200
+                                    {% else %}bg-slate-100 text-slate-700 border border-slate-200{% endif %}">
+                                    {{ v.get_status_display }}
+                                </span>
+                                {% if v.status == 'REJECTED' and v.remarks %}
+                                <span class="block text-[10px] text-rose-600 mt-0.5 truncate max-w-xs" title="{{ v.remarks }}">
+                                    Reason: {{ v.remarks }}
+                                </span>
+                                {% endif %}
+                            </td>
+                            <td class="py-3 px-4">
+                                {% if v.payment_proof %}
+                                <a href="{{ v.payment_proof.url }}" target="_blank" class="inline-flex items-center space-x-1.5 px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-lg text-xs font-semibold border border-slate-200">
+                                    {% if v.is_file_pdf %}
+                                    <i class="fa-solid fa-file-pdf text-rose-600"></i>
+                                    <span>View PDF</span>
+                                    {% else %}
+                                    <i class="fa-solid fa-image text-emerald-600"></i>
+                                    <span>View Receipt</span>
+                                    {% endif %}
+                                </a>
+                                {% else %}
+                                <span class="text-slate-400 italic">No file</span>
+                                {% endif %}
+                            </td>
+                            <td class="py-3 px-4 text-right">
+                                <a href="{% url 'fee_verify' v.pk %}?next={% url 'student_cnic_search' %}?cnic={{ student.cnic|default:student.cnic_or_id }}" class="px-3 py-1.5 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-xs font-bold shadow-xs transition-colors inline-flex items-center space-x-1">
+                                    <i class="fa-solid fa-stamp"></i>
+                                    <span>Verify / Update</span>
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="py-8 text-center text-slate-400 text-xs">
+                <i class="fa-solid fa-receipt text-3xl mb-2 text-slate-300"></i>
+                <p class="font-medium text-slate-600">No fee vouchers recorded for this student yet.</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- 5. Complaints & Disciplinary Conduct Records -->
+        <div class="bg-white rounded-3xl border border-slate-200/80 shadow-xs p-6 space-y-4">
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 rounded-2xl bg-rose-50 text-rose-700 flex items-center justify-center font-bold text-lg">
+                        <i class="fa-solid fa-clipboard-list"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-slate-900 text-sm">Hostel Complaints & Disciplinary Conduct Records</h3>
+                        <p class="text-[11px] text-slate-400">Total tickets & incidents logged: {{ complaints|length }}</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-2 text-xs">
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
+                        <i class="fa-solid fa-circle-check mr-1.5 text-emerald-600"></i> Good Standing
+                    </span>
+                </div>
+            </div>
+
+            {% if complaints %}
+            <div class="divide-y divide-slate-100">
+                {% for c in complaints %}
+                <div class="py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+                    <div>
+                        <div class="flex items-center space-x-2">
+                            <span class="font-bold text-slate-900">{{ c.title }}</span>
+                            <span class="font-mono text-[11px] text-slate-400">#{{ c.complaint_ref }}</span>
+                        </div>
+                        <p class="text-[11px] text-slate-500 mt-0.5">
+                            Category: <strong>{{ c.get_category_display }}</strong> &bull; Priority: <strong>{{ c.get_priority_display }}</strong> &bull; Date: {{ c.created_at|date:"M d, Y" }}
+                        </p>
+                        {% if c.warden_remarks %}
+                        <p class="text-[11px] text-indigo-700 bg-indigo-50/60 rounded-lg p-1.5 mt-1">
+                            <strong>Staff Remarks:</strong> {{ c.warden_remarks }}
+                        </p>
+                        {% endif %}
+                    </div>
+                    <span class="self-start sm:self-center px-2.5 py-1 rounded-full text-[11px] font-bold shrink-0
+                        {% if c.status == 'RESOLVED' %}bg-emerald-100 text-emerald-800
+                        {% elif c.status == 'IN_PROGRESS' %}bg-blue-100 text-blue-800
+                        {% elif c.status == 'REJECTED' %}bg-rose-100 text-rose-800
+                        {% else %}bg-amber-100 text-amber-800{% endif %}">
+                        {{ c.get_status_display }}
+                    </span>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="p-6 text-center text-slate-400 text-xs">
+                <i class="fa-solid fa-circle-check text-2xl text-emerald-500 mb-1"></i>
+                <p class="font-medium text-slate-600">Clean Record: No maintenance complaints or disciplinary incidents logged against this resident.</p>
+            </div>
+            {% endif %}
+        </div>
+
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}

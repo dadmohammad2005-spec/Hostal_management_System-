@@ -1,0 +1,547 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Ali Hall Hostel - The Islamia University of Bahawalpur{% endblock %}</title>
+    
+    <!-- University Favicon & Icons -->
+    <link rel="icon" type="image/png" href="{% static 'images/iub_logo.png' %}">
+    <link rel="apple-touch-icon" href="{% static 'images/iub_logo.png' %}">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            500: '#22c55e',
+                            600: '#16a34a',
+                            700: '#15803d',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- FontAwesome 6 CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #f8fafc;
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="text-slate-800 antialiased min-h-screen flex flex-col">
+
+    {% if user.is_authenticated %}
+    <div class="flex h-screen overflow-hidden bg-slate-50">
+        <!-- Sidebar Backdrop for Mobile -->
+        <div id="sidebar-backdrop" onclick="toggleSidebar()" class="fixed inset-0 z-30 bg-slate-900/50 backdrop-blur-sm transition-opacity hidden lg:hidden"></div>
+
+        <!-- Sidebar Navigation -->
+        <aside id="sidebar" class="fixed inset-y-0 left-0 z-40 w-64 bg-slate-900 text-slate-300 flex flex-col transition-transform transform -translate-x-full lg:translate-x-0 lg:static lg:inset-auto">
+            <!-- Sidebar Header -->
+            <div class="flex items-center justify-between px-5 py-4 border-b border-slate-800">
+                <a href="{% url 'dashboard' %}" class="flex items-center space-x-3 group">
+                    <div class="w-11 h-11 rounded-xl bg-slate-800/80 p-1 flex items-center justify-center shadow-md border border-slate-700/60 shrink-0 group-hover:border-emerald-500/50 transition-colors">
+                        <img src="{% static 'images/iub_logo.png' %}" alt="IUB Logo" class="w-full h-full object-contain drop-shadow">
+                    </div>
+                    <div class="min-w-0">
+                        <span class="text-white font-bold text-base tracking-tight block leading-tight truncate">Ali Hall Hostel</span>
+                        <span class="text-[11px] text-emerald-400 font-semibold tracking-wide">IUB Bahawalpur</span>
+                    </div>
+                </a>
+                <button onclick="toggleSidebar()" class="lg:hidden text-slate-400 hover:text-white">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+
+            <!-- Role Badge in Sidebar -->
+            <div class="px-6 py-3 border-b border-slate-800/60 bg-slate-950/40">
+                <div class="flex items-center space-x-3">
+                    <div class="relative">
+                        {% if user.profile_pic %}
+                        <img src="{{ user.profile_pic.url }}" alt="{{ user.username }}" class="w-9 h-9 rounded-full object-cover border border-slate-700">
+                        {% else %}
+                        <div class="w-9 h-9 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-300 font-semibold text-xs">
+                            {{ user.initials }}
+                        </div>
+                        {% endif %}
+                        <span class="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-slate-900"></span>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-semibold text-white truncate">{{ user.get_full_name|default:user.username }}</p>
+                        <span class="inline-block text-[11px] font-medium px-2 py-0.5 rounded-full 
+                            {% if user.role == 'ADMIN' %}bg-purple-900/50 text-purple-300 border border-purple-700/50
+                            {% elif user.role == 'CHIEF_WARDEN' %}bg-amber-900/50 text-amber-300 border border-amber-700/50
+                            {% elif user.role == 'WARDEN' %}bg-indigo-900/50 text-indigo-300 border border-indigo-700/50
+                            {% else %}bg-emerald-900/50 text-emerald-300 border border-emerald-700/50{% endif %}">
+                            {{ user.get_role_display }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Nav Links -->
+            <nav class="flex-1 px-4 py-4 space-y-1.5 overflow-y-auto">
+                <a href="{% url 'dashboard' %}" class="flex items-center space-x-3 px-3.5 py-2.5 rounded-lg text-sm font-medium transition-colors hover:bg-slate-800 hover:text-white text-slate-300">
+                    <i class="fa-solid fa-chart-pie w-5 text-indigo-400"></i>
+                    <span>Dashboard Home</span>
+                </a>
+
+                {% if user.is_admin_user %}
+                <!-- SuperAdmin Navigation -->
+                <a href="{% url 'admin_portal' %}" class="flex items-center space-x-3 px-3.5 py-2.5 rounded-lg text-sm font-semibold transition-colors bg-purple-600/20 text-purple-300 border border-purple-500/30">
+                    <i class="fa-solid fa-gauge-high w-5 text-purple-400"></i>
+                    <span>Admin Operations Portal</span>
+                </a>
+                <a href="{% url 'student_cnic_search' %}" class="flex items-center space-x-3 px-3.5 py-2 rounded-lg text-sm font-medium transition-colors hover:bg-slate-800 hover:text-white text-emerald-300">
+                    <i class="fa-solid fa-id-card w-5 text-emerald-400"></i>
+                    <span>CNIC Student Search</span>
+                    <span class="ml-auto text-[10px] font-bold bg-emerald-500/20 text-emerald-300 px-1.5 py-0.5 rounded">SEARCH</span>
+                </a>
+
+                <div class="pt-3 pb-1 px-3.5 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Admissions & Students</div>
+                <a href="{% url 'application_list' %}" class="flex items-center space-x-3 px-3.5 py-2 rounded-lg text-sm font-medium transition-colors hover:bg-slate-800 hover:text-white text-slate-300">
+                    <i class="fa-solid fa-file-signature w-5 text-emerald-400"></i>
+                    <span>Applications</span>
+                </a>
+                <a href="{% url 'student_directory' %}" class="flex items-center space-x-3 px-3.5 py-2 rounded-lg text-sm font-medium transition-colors hover:bg-slate-800 hover:text-white text-slate-300">
+                    <i class="fa-solid fa-user-graduate w-5 text-teal-400"></i>
+                    <span>Student Directory</span>
+                </a>
+
+                <div class="pt-3 pb-1 px-3.5 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Rooms & Inventory</div>
+                <a href="{% url 'room_inventory' %}" class="flex items-center space-x-3 px-3.5 py-2 rounded-lg text-sm font-medium transition-colors hover:bg-slate-800 hover:text-white text-slate-300">
+                    <i class="fa-solid fa-door-open w-5 text-blue-400"></i>
+                    <span>Rooms (300 Rooms / 600 Beds)</span>
+                </a>
+                <a href="{% url 'allocation_list' %}" class="flex items-center space-x-3 px-3.5 py-2 rounded-lg text-sm font-medium transition-colors hover:bg-slate-800 hover:text-white text-slate-300">
+                    <i class="fa-solid fa-bed w-5 text-emerald-400"></i>
+                    <span>Room Allocations</span>
+                </a>
+                <a href="{% url 'room_change_list' %}" class="flex items-center space-x-3 px-3.5 py-2 rounded-lg text-sm font-medium transition-colors hover:bg-slate-800 hover:text-white text-slate-300">
+                    <i class="fa-solid fa-arrows-split-up-and-left w-5 text-cyan-400"></i>
+                    <span>Room Change Requests</span>
+                </a>
+
+                <div class="pt-3 pb-1 px-3.5 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Operations & Staff</div>
+                <a href="{% url 'warden_list' %}" class="flex items-center space-x-3 px-3.5 py-2 rounded-lg text-sm font-medium transition-colors hover:bg-slate-800 hover:text-white text-slate-300">
+                    <i class="fa-solid fa-user-shield w-5 text-purple-400"></i>
+                    <span>Wardens & Staff</span>
+                </a>
+                <a href="{% url 'complaint_list' %}" class="flex items-center space-x-3 px-3.5 py-2 rounded-lg text-sm font-medium transition-colors hover:bg-slate-800 hover:text-white text-slate-300">
+                    <i class="fa-solid fa-wrench w-5 text-rose-400"></i>
+                    <span>Complaints (11 Categories)</span>
+                </a>
+                <a href="{% url 'announcement_list' %}" class="flex items-center space-x-3 px-3.5 py-2 rounded-lg text-sm font-medium transition-colors hover:bg-slate-800 hover:text-white text-slate-300">
+                    <i class="fa-solid fa-bullhorn w-5 text-amber-400"></i>
+                    <span>Announcements</span>
+                </a>
+                <a href="{% url 'fee_voucher_list' %}" class="flex items-center space-x-3 px-3.5 py-2 rounded-lg text-sm font-medium transition-colors hover:bg-slate-800 hover:text-white text-yellow-300">
+                    <i class="fa-solid fa-receipt w-5 text-yellow-400"></i>
+                    <span>Hostel Fee Vouchers & Verifications</span>
+                </a>
+                <a href="{% url 'gate_pass_list' %}" class="flex items-center space-x-3 px-3.5 py-2 rounded-lg text-sm font-medium transition-colors hover:bg-slate-800 hover:text-white text-slate-300">
+                    <i class="fa-solid fa-id-card-clip w-5 text-teal-400"></i>
+                    <span>Gate Passes</span>
+                </a>
+                <a href="/mess/" class="flex items-center space-x-3 px-3.5 py-2 rounded-lg text-sm font-medium transition-colors hover:bg-slate-800 hover:text-white text-slate-300">
+                    <i class="fa-solid fa-utensils w-5 text-orange-400"></i>
+                    <span>Hostel Mess Module</span>
+                </a>
+
+                <div class="pt-3 pb-1 px-3.5 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Reports & Exports</div>
+                <a href="{% url 'export_students_csv' %}" class="flex items-center space-x-3 px-3.5 py-2 rounded-lg text-sm font-medium transition-colors hover:bg-slate-800 hover:text-white text-slate-300">
+                    <i class="fa-solid fa-file-csv w-5 text-cyan-400"></i>
+                    <span>Export Students (CSV)</span>
+                </a>
+                <a href="{% url 'export_fee_defaulters_csv' %}" class="flex items-center space-x-3 px-3.5 py-2 rounded-lg text-sm font-medium transition-colors hover:bg-slate-800 hover:text-white text-slate-300">
+                    <i class="fa-solid fa-file-invoice-dollar w-5 text-red-400"></i>
+                    <span>Fee Defaulters (CSV)</span>
+                </a>
+
+                {% elif user.is_chief_warden_user %}
+                <!-- Chief Warden Executive Navigation -->
+                <a href="{% url 'chief_warden_portal' %}" class="flex items-center space-x-3 px-3.5 py-2.5 rounded-lg text-sm font-semibold transition-colors bg-amber-600/20 text-amber-300 border border-amber-500/30">
+                    <i class="fa-solid fa-chess-king w-5 text-amber-400"></i>
+                    <span>Chief Warden Portal</span>
+                </a>
+                <a href="{% url 'student_cnic_search' %}" class="flex items-center space-x-3 px-3.5 py-2 rounded-lg text-sm font-medium transition-colors hover:bg-slate-800 hover:text-white text-emerald-300">
+                    <i class="fa-solid fa-id-card w-5 text-emerald-400"></i>
+                    <span>CNIC Student Search</span>
+                    <span class="ml-auto text-[10px] font-bold bg-emerald-500/20 text-emerald-300 px-1.5 py-0.5 rounded">SEARCH</span>
+                </a>
+
+                <div class="pt-3 pb-1 px-3.5 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Hostel Supervision</div>
+                <a href="{% url 'room_inventory' %}" class="flex items-center space-x-3 px-3.5 py-2 rounded-lg text-sm font-medium transition-colors hover:bg-slate-800 hover:text-white text-slate-300">
+                    <i class="fa-solid fa-door-open w-5 text-blue-400"></i>
+                    <span>300 Rooms / 600 Beds</span>
+                </a>
+                <a href="{% url 'allocation_list' %}" class="flex items-center space-x-3 px-3.5 py-2 rounded-lg text-sm font-medium transition-colors hover:bg-slate-800 hover:text-white text-slate-300">
+                    <i class="fa-solid fa-bed w-5 text-emerald-400"></i>
+                    <span>All Allocations</span>
+                </a>
+                <a href="{% url 'room_change_list' %}" class="flex items-center space-x-3 px-3.5 py-2 rounded-lg text-sm font-medium transition-colors hover:bg-slate-800 hover:text-white text-slate-300">
+                    <i class="fa-solid fa-arrows-split-up-and-left w-5 text-cyan-400"></i>
+                    <span>Room Change Reviews</span>
+                </a>
+                <a href="{% url 'warden_list' %}" class="flex items-center space-x-3 px-3.5 py-2 rounded-lg text-sm font-medium transition-colors hover:bg-slate-800 hover:text-white text-slate-300">
+                    <i class="fa-solid fa-user-shield w-5 text-purple-400"></i>
+                    <span>Wardens & Staff Roster</span>
+                </a>
+
+                <div class="pt-3 pb-1 px-3.5 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Students & Operations</div>
+                <a href="{% url 'student_directory' %}" class="flex items-center space-x-3 px-3.5 py-2 rounded-lg text-sm font-medium transition-colors hover:bg-slate-800 hover:text-white text-slate-300">
+                    <i class="fa-solid fa-user-graduate w-5 text-teal-400"></i>
+                    <span>Student Directory</span>
+                </a>
+                <a href="{% url 'complaint_list' %}" class="flex items-center space-x-3 px-3.5 py-2 rounded-lg text-sm font-medium transition-colors hover:bg-slate-800 hover:text-white text-slate-300">
+                    <i class="fa-solid fa-wrench w-5 text-rose-400"></i>
+                    <span>Complaints (11 Categories)</span>
+                </a>
+                <a href="{% url 'fee_voucher_list' %}" class="flex items-center space-x-3 px-3.5 py-2 rounded-lg text-sm font-medium transition-colors hover:bg-slate-800 hover:text-white text-yellow-300">
+                    <i class="fa-solid fa-receipt w-5 text-yellow-400"></i>
+                    <span>Fee Vouchers & Verification</span>
+                </a>
+                <a href="{% url 'gate_pass_list' %}" class="flex items-center space-x-3 px-3.5 py-2 rounded-lg text-sm font-medium transition-colors hover:bg-slate-800 hover:text-white text-slate-300">
+                    <i class="fa-solid fa-id-card-clip w-5 text-teal-400"></i>
+                    <span>Gate Passes</span>
+                </a>
+                <a href="{% url 'announcement_list' %}" class="flex items-center space-x-3 px-3.5 py-2 rounded-lg text-sm font-medium transition-colors hover:bg-slate-800 hover:text-white text-slate-300">
+                    <i class="fa-solid fa-bullhorn w-5 text-amber-400"></i>
+                    <span>Announcements</span>
+                </a>
+                <a href="/mess/" class="flex items-center space-x-3 px-3.5 py-2 rounded-lg text-sm font-medium transition-colors hover:bg-slate-800 hover:text-white text-slate-300">
+                    <i class="fa-solid fa-utensils w-5 text-orange-400"></i>
+                    <span>Mess Supervision</span>
+                </a>
+
+                <div class="pt-3 pb-1 px-3.5 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Reports & Exports</div>
+                <a href="{% url 'export_students_csv' %}" class="flex items-center space-x-3 px-3.5 py-2 rounded-lg text-sm font-medium transition-colors hover:bg-slate-800 hover:text-white text-slate-300">
+                    <i class="fa-solid fa-file-csv w-5 text-cyan-400"></i>
+                    <span>Export Students (CSV)</span>
+                </a>
+                <a href="{% url 'export_fee_defaulters_csv' %}" class="flex items-center space-x-3 px-3.5 py-2 rounded-lg text-sm font-medium transition-colors hover:bg-slate-800 hover:text-white text-slate-300">
+                    <i class="fa-solid fa-file-invoice-dollar w-5 text-red-400"></i>
+                    <span>Fee Defaulters (CSV)</span>
+                </a>
+
+                {% elif user.is_warden_user %}
+                <!-- Warden Navigation -->
+                <a href="{% url 'warden_portal' %}" class="flex items-center space-x-3 px-3.5 py-2.5 rounded-lg text-sm font-semibold transition-colors bg-indigo-600/20 text-indigo-300 border border-indigo-500/30">
+                    <i class="fa-solid fa-shield-halved w-5 text-indigo-400"></i>
+                    <span>Warden Block Portal</span>
+                </a>
+                <a href="{% url 'student_cnic_search' %}" class="flex items-center space-x-3 px-3.5 py-2 rounded-lg text-sm font-medium transition-colors hover:bg-slate-800 hover:text-white text-emerald-300">
+                    <i class="fa-solid fa-id-card w-5 text-emerald-400"></i>
+                    <span>CNIC Student Search</span>
+                </a>
+
+                <div class="pt-3 pb-1 px-3.5 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">My Assigned Block</div>
+                <a href="{% url 'room_inventory' %}" class="flex items-center space-x-3 px-3.5 py-2 rounded-lg text-sm font-medium transition-colors hover:bg-slate-800 hover:text-white text-slate-300">
+                    <i class="fa-solid fa-door-open w-5 text-blue-400"></i>
+                    <span>Rooms & Occupancy</span>
+                </a>
+                <a href="{% url 'student_directory' %}" class="flex items-center space-x-3 px-3.5 py-2 rounded-lg text-sm font-medium transition-colors hover:bg-slate-800 hover:text-white text-slate-300">
+                    <i class="fa-solid fa-user-graduate w-5 text-teal-400"></i>
+                    <span>Student Residents</span>
+                </a>
+                <a href="{% url 'allocation_list' %}" class="flex items-center space-x-3 px-3.5 py-2 rounded-lg text-sm font-medium transition-colors hover:bg-slate-800 hover:text-white text-slate-300">
+                    <i class="fa-solid fa-bed w-5 text-emerald-400"></i>
+                    <span>Room Allocations</span>
+                </a>
+                <a href="{% url 'room_change_list' %}" class="flex items-center space-x-3 px-3.5 py-2 rounded-lg text-sm font-medium transition-colors hover:bg-slate-800 hover:text-white text-slate-300">
+                    <i class="fa-solid fa-arrows-split-up-and-left w-5 text-cyan-400"></i>
+                    <span>Room Change Reviews</span>
+                </a>
+                <a href="{% url 'complaint_list' %}" class="flex items-center space-x-3 px-3.5 py-2 rounded-lg text-sm font-medium transition-colors hover:bg-slate-800 hover:text-white text-slate-300">
+                    <i class="fa-solid fa-wrench w-5 text-rose-400"></i>
+                    <span>Maintenance Tickets</span>
+                </a>
+                <a href="{% url 'fee_voucher_list' %}" class="flex items-center space-x-3 px-3.5 py-2 rounded-lg text-sm font-medium transition-colors hover:bg-slate-800 hover:text-white text-yellow-300">
+                    <i class="fa-solid fa-receipt w-5 text-yellow-400"></i>
+                    <span>Block Fee Vouchers</span>
+                </a>
+                <a href="{% url 'gate_pass_list' %}" class="flex items-center space-x-3 px-3.5 py-2 rounded-lg text-sm font-medium transition-colors hover:bg-slate-800 hover:text-white text-slate-300">
+                    <i class="fa-solid fa-id-card-clip w-5 text-teal-400"></i>
+                    <span>Gate Pass Reviews</span>
+                </a>
+                <a href="{% url 'announcement_list' %}" class="flex items-center space-x-3 px-3.5 py-2 rounded-lg text-sm font-medium transition-colors hover:bg-slate-800 hover:text-white text-slate-300">
+                    <i class="fa-solid fa-bullhorn w-5 text-amber-400"></i>
+                    <span>Hostel Notices</span>
+                </a>
+                <a href="/mess/" class="flex items-center space-x-3 px-3.5 py-2 rounded-lg text-sm font-medium transition-colors hover:bg-slate-800 hover:text-white text-slate-300">
+                    <i class="fa-solid fa-utensils w-5 text-orange-400"></i>
+                    <span>Hostel Mess Hub</span>
+                </a>
+
+                {% else %}
+                <!-- Student Resident Navigation -->
+                <a href="{% url 'student_portal' %}" class="flex items-center space-x-3 px-3.5 py-2.5 rounded-lg text-sm font-semibold transition-colors bg-emerald-600/20 text-emerald-300 border border-emerald-500/30">
+                    <i class="fa-solid fa-house-user w-5 text-emerald-400"></i>
+                    <span>Student Portal</span>
+                </a>
+                <div class="pt-3 pb-1 px-3.5 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">My Residence</div>
+                <a href="{% url 'profile' %}" class="flex items-center space-x-3 px-3.5 py-2 rounded-lg text-sm font-medium transition-colors hover:bg-slate-800 hover:text-white text-slate-300">
+                    <i class="fa-solid fa-id-card w-5 text-emerald-400"></i>
+                    <span>Profile & Documents</span>
+                </a>
+                <a href="{% url 'student_fee_upload' %}" class="flex items-center space-x-3 px-3.5 py-2 rounded-lg text-sm font-medium transition-colors hover:bg-slate-800 hover:text-white text-amber-300">
+                    <i class="fa-solid fa-file-arrow-up w-5 text-amber-400"></i>
+                    <span>Upload Fee Voucher</span>
+                    <span class="ml-auto text-[10px] font-bold bg-amber-500/20 text-amber-300 px-1.5 py-0.5 rounded">UPLOAD</span>
+                </a>
+                <a href="{% url 'fee_voucher_list' %}" class="flex items-center space-x-3 px-3.5 py-2 rounded-lg text-sm font-medium transition-colors hover:bg-slate-800 hover:text-white text-slate-300">
+                    <i class="fa-solid fa-receipt w-5 text-yellow-400"></i>
+                    <span>My Fee Invoices</span>
+                </a>
+                <a href="{% url 'room_change_request_create' %}" class="flex items-center space-x-3 px-3.5 py-2 rounded-lg text-sm font-medium transition-colors hover:bg-slate-800 hover:text-white text-slate-300">
+                    <i class="fa-solid fa-arrows-split-up-and-left w-5 text-cyan-400"></i>
+                    <span>Request Room Change</span>
+                </a>
+                <a href="{% url 'complaint_list' %}" class="flex items-center space-x-3 px-3.5 py-2 rounded-lg text-sm font-medium transition-colors hover:bg-slate-800 hover:text-white text-slate-300">
+                    <i class="fa-solid fa-wrench w-5 text-rose-400"></i>
+                    <span>Submit Complaints</span>
+                </a>
+                <a href="{% url 'gate_pass_list' %}" class="flex items-center space-x-3 px-3.5 py-2 rounded-lg text-sm font-medium transition-colors hover:bg-slate-800 hover:text-white text-slate-300">
+                    <i class="fa-solid fa-id-card-clip w-5 text-teal-400"></i>
+                    <span>Gate Pass Requests</span>
+                </a>
+                <a href="{% url 'announcement_list' %}" class="flex items-center space-x-3 px-3.5 py-2 rounded-lg text-sm font-medium transition-colors hover:bg-slate-800 hover:text-white text-slate-300">
+                    <i class="fa-solid fa-bullhorn w-5 text-indigo-400"></i>
+                    <span>Hostel Notices</span>
+                </a>
+                <a href="/mess/portal/" class="flex items-center space-x-3 px-3.5 py-2 rounded-lg text-sm font-medium transition-colors hover:bg-slate-800 hover:text-white text-slate-300">
+                    <i class="fa-solid fa-utensils w-5 text-orange-400"></i>
+                    <span>Mess Portal (Meals & Dining)</span>
+                </a>
+                {% endif %}
+            </nav>
+
+            <!-- Sidebar Footer -->
+            <div class="p-4 border-t border-slate-800 space-y-1">
+                <a href="{% url 'profile' %}" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition-colors">
+                    <i class="fa-solid fa-user-gear w-5 text-slate-400"></i>
+                    <span>My Profile</span>
+                </a>
+                <a href="{% url 'logout' %}" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium text-rose-400 hover:bg-rose-500/10 hover:text-rose-300 transition-colors">
+                    <i class="fa-solid fa-arrow-right-from-bracket w-5"></i>
+                    <span>Sign Out</span>
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Body Area -->
+        <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
+            <!-- Top Navbar -->
+            <header class="bg-white border-b border-slate-200 sticky top-0 z-20 shadow-xs">
+                <div class="flex items-center justify-between px-6 py-3.5">
+                    <div class="flex items-center space-x-3.5">
+                        <button onclick="toggleSidebar()" class="lg:hidden p-2 rounded-lg text-slate-600 hover:bg-slate-100">
+                            <i class="fa-solid fa-bars text-lg"></i>
+                        </button>
+                        <div class="hidden sm:flex items-center justify-center w-10 h-10 rounded-xl bg-slate-50 border border-slate-200/80 p-1 shadow-xs shrink-0">
+                            <img src="{% static 'images/iub_logo.png' %}" alt="IUB Logo" class="w-full h-full object-contain">
+                        </div>
+                        <div>
+                            <h1 class="text-base sm:text-lg font-bold text-slate-800 leading-tight">
+                                {% block header_title %}Ali Hall Hostel - The Islamia University of Bahawalpur{% endblock %}
+                            </h1>
+                            <p class="text-xs text-slate-500 hidden sm:block">Directorate of Student Hostels &bull; Baghdad-ul-Jadeed Campus</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center space-x-3 sm:space-x-4">
+                        <!-- Notifications Bell Dropdown -->
+                        <div class="relative" id="notification-dropdown-container">
+                            <button onclick="toggleNotificationDropdown()" class="relative p-2 rounded-xl text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors focus:outline-none">
+                                <i class="fa-solid fa-bell text-lg"></i>
+                                {% if unread_notifications_count > 0 %}
+                                <span class="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-[10px] font-bold text-white ring-2 ring-white">
+                                    {{ unread_notifications_count }}
+                                </span>
+                                {% endif %}
+                            </button>
+
+                            <!-- Dropdown Menu -->
+                            <div id="notification-menu" class="hidden absolute right-0 mt-2 w-80 sm:w-96 rounded-2xl bg-white shadow-2xl ring-1 ring-black/5 z-50 overflow-hidden">
+                                <div class="px-4 py-3 bg-slate-900 text-white flex items-center justify-between">
+                                    <div class="flex items-center space-x-2">
+                                        <i class="fa-solid fa-bell text-emerald-400"></i>
+                                        <span class="text-sm font-bold">Notifications</span>
+                                    </div>
+                                    {% if unread_notifications_count > 0 %}
+                                    <a href="{% url 'notification_mark_all_read' %}" class="text-xs text-emerald-400 hover:underline">Mark all read</a>
+                                    {% endif %}
+                                </div>
+                                <div class="max-h-80 overflow-y-auto divide-y divide-slate-100">
+                                    {% if header_notifications %}
+                                        {% for notif in header_notifications %}
+                                        <a href="{% url 'notification_mark_read' notif.pk %}" class="block p-3.5 hover:bg-slate-50 transition-colors {% if not notif.is_read %}bg-emerald-50/40{% endif %}">
+                                            <div class="flex items-start space-x-3">
+                                                <div class="w-8 h-8 rounded-full flex items-center justify-center text-xs shrink-0
+                                                    {% if notif.notification_type == 'ALLOCATION' %}bg-emerald-100 text-emerald-700
+                                                    {% elif notif.notification_type == 'COMPLAINT' %}bg-rose-100 text-rose-700
+                                                    {% elif notif.notification_type == 'ROOM_CHANGE' %}bg-cyan-100 text-cyan-700
+                                                    {% elif notif.notification_type == 'APPLICATION' %}bg-purple-100 text-purple-700
+                                                    {% else %}bg-blue-100 text-blue-700{% endif %}">
+                                                    <i class="fa-solid 
+                                                        {% if notif.notification_type == 'ALLOCATION' %}fa-bed
+                                                        {% elif notif.notification_type == 'COMPLAINT' %}fa-wrench
+                                                        {% elif notif.notification_type == 'ROOM_CHANGE' %}fa-arrows-split-up-and-left
+                                                        {% elif notif.notification_type == 'APPLICATION' %}fa-file-signature
+                                                        {% else %}fa-circle-info{% endif %}">
+                                                    </i>
+                                                </div>
+                                                <div class="flex-1 min-w-0">
+                                                    <p class="text-xs font-bold text-slate-800 truncate">{{ notif.title }}</p>
+                                                    <p class="text-[11px] text-slate-600 line-clamp-2 mt-0.5">{{ notif.message }}</p>
+                                                    <span class="text-[10px] text-slate-400 mt-1 block">{{ notif.created_at|timesince }} ago</span>
+                                                </div>
+                                            </div>
+                                        </a>
+                                        {% endfor %}
+                                    {% else %}
+                                        <div class="py-8 text-center text-slate-400">
+                                            <i class="fa-solid fa-bell-slash text-2xl mb-2"></i>
+                                            <p class="text-xs">No unread notifications</p>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="p-2.5 bg-slate-50 border-t border-slate-100 text-center">
+                                    <a href="{% url 'notifications_list' %}" class="text-xs font-semibold text-emerald-700 hover:text-emerald-800">View All Notifications &rarr;</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- User Profile Link -->
+                        <a href="{% url 'profile' %}" class="flex items-center space-x-2 text-slate-700 hover:text-emerald-600 transition-colors">
+                            {% if user.profile_pic %}
+                            <img src="{{ user.profile_pic.url }}" alt="{{ user.username }}" class="w-8 h-8 rounded-full object-cover border border-slate-300">
+                            {% else %}
+                            <div class="w-8 h-8 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 flex items-center justify-center font-bold text-xs">
+                                {{ user.initials }}
+                            </div>
+                            {% endif %}
+                            <span class="hidden md:inline-block text-xs font-semibold text-slate-800 truncate max-w-[120px]">{{ user.get_full_name|default:user.username }}</span>
+                        </a>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Alerts Container -->
+            <main class="flex-1 overflow-y-auto px-4 sm:px-6 py-6">
+                {% if messages %}
+                <div class="space-y-3 mb-6">
+                    {% for message in messages %}
+                    <div class="flex items-center justify-between px-4 py-3 rounded-xl border text-sm font-medium shadow-xs transition-all {{ message.tags }}">
+                        <div class="flex items-center space-x-2.5">
+                            <i class="fa-solid 
+                                {% if 'success' in message.tags %}fa-circle-check text-emerald-600
+                                {% elif 'error' in message.tags or 'danger' in message.tags %}fa-circle-exclamation text-rose-600
+                                {% elif 'warning' in message.tags %}fa-triangle-exclamation text-amber-600
+                                {% else %}fa-circle-info text-blue-600{% endif %}">
+                            </i>
+                            <span>{{ message }}</span>
+                        </div>
+                        <button onclick="this.parentElement.remove()" class="text-slate-400 hover:text-slate-700 ml-4">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <!-- Content Block -->
+                {% block content %}{% endblock %}
+            </main>
+        </div>
+    </div>
+
+    {% else %}
+    <!-- Public Layout for Login & Register -->
+    <div class="min-h-screen flex flex-col justify-center items-center px-4 py-12 bg-slate-900 bg-radial from-slate-900 to-slate-950">
+        {% if messages %}
+        <div class="w-full max-w-md space-y-3 mb-6">
+            {% for message in messages %}
+            <div class="flex items-center justify-between px-4 py-3 rounded-lg border text-sm font-medium shadow-sm {{ message.tags }}">
+                <div class="flex items-center space-x-2">
+                    <i class="fa-solid fa-circle-info"></i>
+                    <span>{{ message }}</span>
+                </div>
+                <button onclick="this.parentElement.remove()" class="text-slate-400 hover:text-slate-700">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% block auth_content %}{% endblock %}
+    </div>
+    {% endif %}
+
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const backdrop = document.getElementById('sidebar-backdrop');
+            if (sidebar.classList.contains('-translate-x-full')) {
+                sidebar.classList.remove('-translate-x-full');
+                backdrop.classList.remove('hidden');
+            } else {
+                sidebar.classList.add('-translate-x-full');
+                backdrop.classList.add('hidden');
+            }
+        }
+
+        function toggleNotificationDropdown() {
+            const menu = document.getElementById('notification-menu');
+            menu.classList.toggle('hidden');
+        }
+
+        // Close dropdown when clicked outside
+        document.addEventListener('click', function(e) {
+            const container = document.getElementById('notification-dropdown-container');
+            const menu = document.getElementById('notification-menu');
+            if (container && menu && !container.contains(e.target)) {
+                menu.classList.add('hidden');
+            }
+        });
+    </script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

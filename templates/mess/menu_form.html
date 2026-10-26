@@ -1,0 +1,82 @@
+{% extends 'mess/base_mess.html' %}
+
+{% block title %}{{ title }} - Ali Hall Mess | IUB{% endblock %}
+{% block header_title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-7">
+        <div class="mess-card p-4">
+            <div class="d-flex align-items-center justify-content-between mb-4 border-bottom pb-3">
+                <div>
+                    <h5 class="fw-bold mb-0 text-dark">{{ title }}</h5>
+                    <small class="text-muted">Enter meal dishes, serving timings, and optional food image</small>
+                </div>
+                <a href="{% url 'menu_weekly' %}" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+                    &larr; Weekly Menu
+                </a>
+            </div>
+
+            <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+
+                {% if form.non_field_errors %}
+                <div class="alert alert-danger">
+                    {% for error in form.non_field_errors %}
+                    <p class="mb-0">{{ error }}</p>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <label class="form-label small fw-bold">Date *</label>
+                        {{ form.date }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small fw-bold">Meal Type *</label>
+                        {{ form.meal_type }}
+                    </div>
+
+                    <div class="col-12">
+                        <label class="form-label small fw-bold">Menu Dishes / Items *</label>
+                        {{ form.menu_items }}
+                        <small class="text-muted">e.g. Chicken Biryani, Special Mint Raita, Fresh Salad, Cold Drink</small>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label small fw-bold">Serving Time (e.g. 7:30 AM - 9:00 AM) *</label>
+                        {{ form.serving_time }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small fw-bold">Meal Status</label>
+                        {{ form.status }}
+                    </div>
+
+                    <div class="col-12">
+                        <label class="form-label small fw-bold">Special Instructions / Dietary Note</label>
+                        {{ form.special_instructions }}
+                    </div>
+
+                    <div class="col-12">
+                        <label class="form-label small fw-bold">Optional Food Image Upload</label>
+                        {{ form.food_image }}
+                        {% if menu.food_image %}
+                        <div class="mt-2">
+                            <img src="{{ menu.food_image.url }}" alt="Preview" class="rounded border" style="height: 100px;">
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end gap-2 border-top pt-3">
+                    <a href="{% url 'menu_weekly' %}" class="btn btn-light px-4">Cancel</a>
+                    <button type="submit" class="btn btn-success fw-semibold px-4 shadow-sm">
+                        <i class="fa-solid fa-floppy-disk me-1"></i> Save Menu
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

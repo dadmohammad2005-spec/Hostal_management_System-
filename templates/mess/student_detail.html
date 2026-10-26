@@ -1,0 +1,217 @@
+{% extends 'mess/base_mess.html' %}
+
+{% block title %}Profile: {{ student.full_name }} - Ali Hall Mess | IUB{% endblock %}
+{% block header_title %}Student Profile & Ledger{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+
+    <!-- Profile Header Card -->
+    <div class="mess-card p-4 mb-4">
+        <div class="row align-items-center g-3">
+            <div class="col-auto">
+                {% if student.profile_pic %}
+                <img src="{{ student.profile_pic.url }}" alt="{{ student.full_name }}" class="student-avatar-lg">
+                {% else %}
+                <div class="student-avatar-lg bg-success text-white d-flex align-items-center justify-center font-bold" style="font-size: 2.2rem;">
+                    {{ student.initials }}
+                </div>
+                {% endif %}
+            </div>
+            <div class="col">
+                <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
+                    <h4 class="fw-bold mb-0 text-dark">{{ student.full_name }}</h4>
+                    <span class="badge 
+                        {% if student.mess_status == 'ACTIVE' %}badge-status-active
+                        {% elif student.mess_status == 'SUSPENDED' %}badge-status-suspended
+                        {% else %}badge-status-inactive{% endif %} px-2.5 py-1 rounded-pill">
+                        {{ student.get_mess_status_display }}
+                    </span>
+                </div>
+                <div class="d-flex flex-wrap align-items-center gap-3 text-muted small">
+                    <span><i class="fa-solid fa-id-card me-1 text-success"></i> Roll: <strong class="text-dark">{{ student.student_id }}</strong></span>
+                    <span><i class="fa-solid fa-graduation-cap me-1 text-primary"></i> {{ student.department }} ({{ student.semester }})</span>
+                    <span><i class="fa-solid fa-door-open me-1 text-warning"></i> Room: <strong>{{ student.hostel_room_no }}</strong></span>
+                    <span><i class="fa-solid fa-calendar me-1 text-secondary"></i> Joined: {{ student.joining_date|date:"M d, Y" }}</span>
+                </div>
+            </div>
+            <div class="col-md-auto text-md-end d-flex gap-2">
+                <a href="{% url 'fee_payment_create' %}" class="btn btn-success btn-sm rounded-pill px-3 shadow-sm">
+                    <i class="fa-solid fa-cash-register me-1"></i> Receive Payment
+                </a>
+                <a href="{% url 'student_edit' student.pk %}" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+                    <i class="fa-solid fa-pen-to-square me-1"></i> Edit Profile
+                </a>
+            </div>
+        </div>
+
+        <hr class="my-3">
+
+        <div class="row g-3 small">
+            <div class="col-md-3">
+                <span class="text-muted d-block">Phone Number:</span>
+                <strong class="text-dark">{{ student.phone_number }}</strong>
+            </div>
+            <div class="col-md-3">
+                <span class="text-muted d-block">Email Address:</span>
+                <strong class="text-dark">{{ student.email }}</strong>
+            </div>
+            <div class="col-md-3">
+                <span class="text-muted d-block">Monthly Mess Fee:</span>
+                <strong class="text-success">Rs. {{ student.monthly_mess_fee }}</strong>
+            </div>
+            <div class="col-md-3">
+                <span class="text-muted d-block">Emergency Contact:</span>
+                <strong class="text-dark">{{ student.emergency_contact }}</strong>
+            </div>
+        </div>
+    </div>
+
+    <!-- Attendance Metrics & Dues -->
+    <div class="row g-4 mb-4">
+        <!-- Attendance Stats -->
+        <div class="col-md-4">
+            <div class="mess-card p-4 h-100">
+                <h6 class="fw-bold mb-3 text-dark border-bottom pb-2">
+                    <i class="fa-solid fa-clipboard-user text-primary me-1"></i> Meal Attendance Summary
+                </h6>
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted small">Total Meals Present:</span>
+                    <strong class="text-success">{{ total_present }}</strong>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted small">Total Meals Absent:</span>
+                    <strong class="text-danger">{{ total_absent }}</strong>
+                </div>
+                <div class="d-flex justify-content-between border-top pt-2">
+                    <span class="text-muted small">Total Recorded:</span>
+                    <strong class="text-dark">{{ total_present|add:total_absent }}</strong>
+                </div>
+            </div>
+        </div>
+
+        <!-- Outstanding Balance -->
+        <div class="col-md-8">
+            <div class="mess-card p-4 h-100 border-start border-4 {% if student.total_outstanding_balance > 0 %}border-danger{% else %}border-success{% endif %}">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <div>
+                        <h6 class="fw-bold mb-0 text-dark">
+                            <i class="fa-solid fa-receipt text-success me-1"></i> Financial Dues Status
+                        </h6>
+                        <small class="text-muted">Total unpaid balance across billing cycles</small>
+                    </div>
+                    <span class="badge {% if student.total_outstanding_balance > 0 %}bg-danger{% else %}bg-success{% endif %} px-3 py-2 rounded-pill">
+                        {% if student.total_outstanding_balance > 0 %}Unpaid Balance{% else %}All Dues Cleared{% endif %}
+                    </span>
+                </div>
+                <h3 class="fw-bold mb-0 {% if student.total_outstanding_balance > 0 %}text-danger{% else %}text-success{% endif %}">
+                    Rs. {{ student.total_outstanding_balance|floatformat:0 }}
+                </h3>
+            </div>
+        </div>
+    </div>
+
+    <!-- Monthly Invoices & Payment Ledger Table -->
+    <div class="mess-card p-4 mb-4">
+        <h6 class="fw-bold mb-3 text-dark border-bottom pb-2">
+            <i class="fa-solid fa-file-invoice-dollar text-success me-1"></i> Mess Fee Invoices & Payment Ledger
+        </h6>
+
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0 small">
+                <thead class="table-light text-muted">
+                    <tr>
+                        <th>Billing Month</th>
+                        <th>Total Fee</th>
+                        <th>Amount Paid</th>
+                        <th>Remaining Balance</th>
+                        <th>Due Date</th>
+                        <th>Status</th>
+                        <th class="text-end">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for f in fees %}
+                    <tr>
+                        <td class="fw-bold text-dark">{{ f.billing_month }}</td>
+                        <td>Rs. {{ f.total_fee }}</td>
+                        <td class="text-success fw-bold">Rs. {{ f.amount_paid }}</td>
+                        <td class="{% if f.remaining_balance > 0 %}text-danger fw-bold{% else %}text-muted{% endif %}">
+                            Rs. {{ f.remaining_balance }}
+                        </td>
+                        <td>{{ f.due_date|date:"M d, Y" }}</td>
+                        <td>
+                            <span class="badge 
+                                {% if f.status == 'PAID' %}bg-success
+                                {% elif f.status == 'PARTIAL' %}bg-warning text-dark
+                                {% elif f.status == 'OVERDUE' %}bg-danger
+                                {% else %}bg-secondary{% endif %}">
+                                {{ f.get_status_display }}
+                            </span>
+                        </td>
+                        <td class="text-end">
+                            {% if f.remaining_balance > 0 %}
+                            <a href="{% url 'fee_payment_for_invoice' f.id %}" class="btn btn-outline-success btn-sm py-1 px-2">
+                                Receive Payment
+                            </a>
+                            {% else %}
+                            <span class="text-success small"><i class="fa-solid fa-check"></i> Paid</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center text-muted py-3">No fee records found for this student.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Payments History Table -->
+    <div class="mess-card p-4">
+        <h6 class="fw-bold mb-3 text-dark border-bottom pb-2">
+            <i class="fa-solid fa-money-bill-transfer text-primary me-1"></i> Received Payments History
+        </h6>
+
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0 small">
+                <thead class="table-light text-muted">
+                    <tr>
+                        <th>Payment Date</th>
+                        <th>Amount Paid</th>
+                        <th>Payment Method</th>
+                        <th>Transaction / Ref #</th>
+                        <th>Receipt Slip</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in payments %}
+                    <tr>
+                        <td>{{ p.payment_date|date:"M d, Y" }}</td>
+                        <td class="fw-bold text-success">Rs. {{ p.amount }}</td>
+                        <td><span class="badge bg-light text-dark border">{{ p.get_payment_method_display }}</span></td>
+                        <td class="font-monospace">{{ p.transaction_id|default:"Cash Counter" }}</td>
+                        <td>
+                            {% if p.receipt_slip %}
+                            <a href="{{ p.receipt_slip.url }}" target="_blank" class="btn btn-light btn-sm text-primary">
+                                <i class="fa-solid fa-paperclip me-1"></i> View Slip
+                            </a>
+                            {% else %}
+                            <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center text-muted py-3">No payments recorded yet.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

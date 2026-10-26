@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+
+{% block title %}Bulk Fee Invoicing - Smart Hostel{% endblock %}
+{% block header_title %}Batch Invoicing & Fee Cycle Generator{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto space-y-6">
+
+    <div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-5 flex items-start space-x-3.5">
+        <div class="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0">
+            <i class="fa-solid fa-wand-magic-sparkles text-base"></i>
+        </div>
+        <div>
+            <h4 class="font-bold text-sm text-emerald-950">Automated Monthly/Semester Billing</h4>
+            <p class="text-xs text-emerald-800 mt-1">This tool creates individual fee vouchers automatically for every student with an active room allotment. Each student will receive a unique voucher code with the defined amount and due date.</p>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="px-6 py-5 border-b border-slate-100 flex items-center justify-between">
+            <h3 class="font-bold text-base text-slate-900">Bulk Fee Generation Parameters</h3>
+            <span class="text-xs text-slate-500">Atomic execution</span>
+        </div>
+
+        <form method="POST" class="p-6 space-y-5">
+            {% csrf_token %}
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Fee Category *</label>
+                    {{ form.fee_type }}
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Billing Cycle / Month *</label>
+                    {{ form.billing_month }}
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Amount per Resident ($ / PKR) *</label>
+                    {{ form.amount }}
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Payment Due Date *</label>
+                    {{ form.due_date }}
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Cycle Remarks / Instructions</label>
+                {{ form.remarks }}
+            </div>
+
+            <div class="pt-4 border-t border-slate-100 flex items-center justify-end space-x-3">
+                <a href="{% url 'fee_voucher_list' %}" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg transition-colors">
+                    Cancel
+                </a>
+                <button type="submit" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg shadow-sm transition-colors flex items-center space-x-2">
+                    <i class="fa-solid fa-file-invoice-dollar"></i>
+                    <span>Generate Vouchers For All Active Students</span>
+                </button>
+            </div>
+        </form>
+    </div>
+
+</div>
+{% endblock %}

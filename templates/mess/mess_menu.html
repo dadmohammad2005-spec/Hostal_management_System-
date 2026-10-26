@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+
+{% block title %}Mess Timetable - Smart Hostel{% endblock %}
+{% block header_title %}Weekly Hostel Mess Timetable{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+
+    <!-- Top Action Card -->
+    <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+            <h2 class="text-lg font-bold text-slate-900">7-Day Dining & Mess Schedule</h2>
+            <p class="text-xs text-slate-500">Official breakfast, lunch, snacks, and dinner meal menu</p>
+        </div>
+        {% if not user.is_student_user %}
+        <a href="{% url 'mess_menu_edit' %}" class="inline-flex items-center space-x-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-lg shadow-sm transition-colors">
+            <i class="fa-solid fa-plus"></i>
+            <span>Add / Edit Meal</span>
+        </a>
+        {% endif %}
+    </div>
+
+    <!-- 7-Day Timetable Grid -->
+    <div class="space-y-6">
+        {% for day_code, day_name in days %}
+        <div class="bg-white rounded-2xl border {% if day_code == current_day %}border-indigo-400 ring-2 ring-indigo-500/20{% else %}border-slate-200{% endif %} shadow-sm overflow-hidden">
+            <!-- Day Header -->
+            <div class="px-6 py-3.5 {% if day_code == current_day %}bg-gradient-to-r from-indigo-500 to-purple-600 text-white{% else %}bg-slate-50 border-b border-slate-200 text-slate-800{% endif %} flex items-center justify-between">
+                <div class="flex items-center space-x-2.5">
+                    <i class="fa-solid fa-calendar-day"></i>
+                    <h3 class="font-bold text-sm tracking-wide uppercase">{{ day_name }}</h3>
+                </div>
+                {% if day_code == current_day %}
+                <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-white text-indigo-700 shadow-sm">
+                    Today
+                </span>
+                {% endif %}
+            </div>
+
+            <!-- Meals for this day -->
+            <div class="p-6 grid grid-cols-1 md:grid-cols-4 gap-4">
+                {% for meal_code, meal_name in meal_types %}
+                    {% with item=menu_matrix|dictsort:day_code %}
+                    {# Custom extraction from matrix in Python context #}
+                    {% endwith %}
+
+                    <!-- Individual Meal Card -->
+                    <div class="p-4 rounded-xl border border-slate-100 bg-slate-50/60 flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-xs font-extrabold uppercase tracking-wider 
+                                    {% if meal_code == 'BREAKFAST' %}text-amber-600
+                                    {% elif meal_code == 'LUNCH' %}text-emerald-600
+                                    {% elif meal_code == 'SNACKS' %}text-purple-600
+                                    {% else %}text-indigo-600{% endif %}">
+                                    {{ meal_name }}
+                                </span>
+                            </div>
+                            
+                            <!-- Fetch matching meal from matrix -->
+                            {% for d_k, meals in menu_matrix.items %}
+                                {% if d_k == day_code %}
+                                    {% for m_k, menu_obj in meals.items %}
+                                        {% if m_k == meal_code %}
+                                            <p class="text-xs text-slate-800 font-medium mb-2 leading-relaxed">
+                                                {{ menu_obj.menu_description }}
+                                            </p>
+                                            {% if menu_obj.timing %}
+                                            <span class="text-[11px] text-slate-400 block mb-1">
+                                                <i class="fa-regular fa-clock mr-1"></i>{{ menu_obj.timing }}
+                                            </span>
+                                            {% endif %}
+                                            {% if menu_obj.special_note %}
+                                            <span class="text-[10px] text-indigo-600 font-semibold bg-indigo-50 px-2 py-0.5 rounded block">
+                                                {{ menu_obj.special_note }}
+                                            </span>
+                                            {% endif %}
+                                            {% if not user.is_student_user %}
+                                            <div class="pt-2 mt-2 border-t border-slate-200/60 text-right">
+                                                <a href="{% url 'mess_menu_edit' %}?id={{ menu_obj.id }}" class="text-[11px] text-indigo-600 hover:underline font-bold">
+                                                    Edit &rarr;
+                                                </a>
+                                            </div>
+                                            {% endif %}
+                                        {% endif %}
+                                    {% endfor %}
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+</div>
+{% endblock %}

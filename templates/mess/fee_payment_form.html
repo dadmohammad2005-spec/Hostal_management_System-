@@ -1,0 +1,99 @@
+{% extends 'mess/base_mess.html' %}
+
+{% block title %}Record Fee Payment - Ali Hall Mess | IUB{% endblock %}
+{% block header_title %}Record Student Mess Payment{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-7">
+        <div class="mess-card p-4">
+            <div class="d-flex align-items-center justify-content-between mb-4 border-bottom pb-3">
+                <div>
+                    <h5 class="fw-bold mb-0 text-dark">Record Fee Payment</h5>
+                    <small class="text-muted">Process cash collection or log bank/online transaction reference</small>
+                </div>
+                <a href="{% url 'fee_list' %}" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+                    &larr; Invoices
+                </a>
+            </div>
+
+            {% if initial_fee %}
+            <!-- Selected Invoice Summary -->
+            <div class="p-3 rounded bg-light border mb-4 small">
+                <div class="d-flex justify-content-between mb-1">
+                    <span class="text-muted">Student:</span>
+                    <strong class="text-dark">{{ initial_fee.student.full_name }} ({{ initial_fee.student.student_id }})</strong>
+                </div>
+                <div class="d-flex justify-content-between mb-1">
+                    <span class="text-muted">Billing Cycle:</span>
+                    <strong class="text-dark">{{ initial_fee.billing_month }}</strong>
+                </div>
+                <div class="d-flex justify-content-between mb-1">
+                    <span class="text-muted">Total Invoiced:</span>
+                    <span>Rs. {{ initial_fee.total_fee }}</span>
+                </div>
+                <div class="d-flex justify-content-between border-top pt-1 mt-1">
+                    <span class="text-muted fw-bold">Remaining Balance Due:</span>
+                    <strong class="text-danger fs-6">Rs. {{ initial_fee.remaining_balance }}</strong>
+                </div>
+            </div>
+            {% endif %}
+
+            <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+
+                {% if form.non_field_errors %}
+                <div class="alert alert-danger">
+                    {% for error in form.non_field_errors %}
+                    <p class="mb-0">{{ error }}</p>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <div class="row g-3 mb-4">
+                    <div class="col-12">
+                        <label class="form-label small fw-bold">Select Student Invoice *</label>
+                        {{ form.mess_fee }}
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label small fw-bold">Payment Amount (PKR / Rs.) *</label>
+                        {{ form.amount }}
+                        {% if form.amount.errors %}<div class="text-danger small mt-1">{{ form.amount.errors.0 }}</div>{% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small fw-bold">Date of Payment *</label>
+                        {{ form.payment_date }}
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label small fw-bold">Payment Method *</label>
+                        {{ form.payment_method }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small fw-bold">Bank Scroll / Transaction Ref #</label>
+                        {{ form.transaction_id }}
+                    </div>
+
+                    <div class="col-12">
+                        <label class="form-label small fw-bold">Upload Stamped Deposit Slip / Receipt Screenshot (Optional)</label>
+                        {{ form.receipt_slip }}
+                    </div>
+
+                    <div class="col-12">
+                        <label class="form-label small fw-bold">Cashier / Staff Notes</label>
+                        {{ form.notes }}
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end gap-2 border-top pt-3">
+                    <a href="{% url 'fee_list' %}" class="btn btn-light px-4">Cancel</a>
+                    <button type="submit" class="btn btn-success fw-semibold px-4 shadow-sm">
+                        <i class="fa-solid fa-check me-1"></i> Confirm & Save Payment
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

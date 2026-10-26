@@ -1,0 +1,113 @@
+{% extends 'mess/base_mess.html' %}
+
+{% block title %}Meal Attendance Report - Ali Hall Mess | IUB{% endblock %}
+{% block header_title %}Meal Attendance Reports{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+
+    <!-- Filters & Summary Cards -->
+    <div class="mess-card p-4 mb-4">
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3">
+            <div>
+                <h5 class="fw-bold mb-0 text-dark">Meal Attendance Statistics</h5>
+                <small class="text-muted">Analyze meal attendance counts and participation</small>
+            </div>
+            <a href="{% url 'attendance_mark' %}" class="btn btn-success btn-sm fw-semibold rounded-pill px-3 shadow-sm">
+                <i class="fa-solid fa-clipboard-user me-1"></i> Mark Attendance Desk
+            </a>
+        </div>
+
+        <form method="GET" class="row g-2 pt-2 border-top">
+            <div class="col-md-5">
+                <label class="form-label small fw-bold">Select Month</label>
+                <input type="month" name="month" value="{{ month_filter }}" class="form-control form-control-sm">
+            </div>
+            <div class="col-md-5">
+                <label class="form-label small fw-bold">Meal Session</label>
+                <select name="meal_type" class="form-select form-select-sm">
+                    <option value="">All Meals</option>
+                    {% for m_code, m_name in meal_types %}
+                    <option value="{{ m_code }}" {% if meal_filter == m_code %}selected{% endif %}>{{ m_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2 d-flex align-items-end gap-1">
+                <button type="submit" class="btn btn-success btn-sm w-100 fw-semibold">Filter</button>
+            </div>
+        </form>
+
+        <div class="row g-3 mt-3 pt-3 border-top">
+            <div class="col-md-4">
+                <div class="p-3 rounded bg-light border text-center">
+                    <span class="text-muted small text-uppercase fw-bold d-block">Total Logs</span>
+                    <h4 class="fw-bold mb-0 text-dark">{{ total_records }}</h4>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="p-3 rounded bg-light border text-center">
+                    <span class="text-muted small text-uppercase fw-bold d-block">Present Meals</span>
+                    <h4 class="fw-bold mb-0 text-success">{{ total_presents }}</h4>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="p-3 rounded bg-light border text-center">
+                    <span class="text-muted small text-uppercase fw-bold d-block">Absent Meals</span>
+                    <h4 class="fw-bold mb-0 text-danger">{{ total_absents }}</h4>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Attendance Log Table -->
+    <div class="mess-card p-4">
+        <h6 class="fw-bold mb-3 text-dark border-bottom pb-2">
+            <i class="fa-solid fa-list-check text-primary me-1"></i> Attendance Log History (Recent Records)
+        </h6>
+
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0 small">
+                <thead class="table-light text-muted">
+                    <tr>
+                        <th>Date</th>
+                        <th>Meal Type</th>
+                        <th>Student Resident</th>
+                        <th>Roll Number</th>
+                        <th>Room No</th>
+                        <th>Status</th>
+                        <th>Remarks</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for a in attendances %}
+                    <tr>
+                        <td>{{ a.date|date:"M d, Y" }}</td>
+                        <td>{{ a.get_meal_type_display }}</td>
+                        <td class="fw-bold text-dark">{{ a.student.full_name }}</td>
+                        <td class="font-monospace">{{ a.student.student_id }}</td>
+                        <td><span class="badge bg-light text-dark border">{{ a.student.hostel_room_no }}</span></td>
+                        <td>
+                            {% if a.status == 'PRESENT' %}
+                            <span class="badge bg-success bg-opacity-25 text-success border border-success border-opacity-50">
+                                <i class="fa-solid fa-check me-1"></i> Present
+                            </span>
+                            {% else %}
+                            <span class="badge bg-danger bg-opacity-25 text-danger border border-danger border-opacity-50">
+                                <i class="fa-solid fa-xmark me-1"></i> Absent
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td class="text-muted">{{ a.remarks|default:"-" }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center text-muted py-4">No records found for this period.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

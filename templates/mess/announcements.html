@@ -1,0 +1,118 @@
+{% extends 'mess/base_mess.html' %}
+
+{% block title %}Announcements & Notices - Ali Hall Mess | IUB{% endblock %}
+{% block header_title %}Mess Notices & Official Announcements{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+
+    <div class="row g-4">
+        <!-- Announcements Feed Column -->
+        <div class="{% if is_admin %}col-lg-7{% else %}col-12{% endif %}">
+            <div class="mess-card p-4">
+                <div class="d-flex align-items-center justify-content-between mb-4 border-bottom pb-3">
+                    <div>
+                        <h5 class="fw-bold mb-0 text-dark">Official Notice Board</h5>
+                        <small class="text-muted">Hostel mess timings, menu adjustments, and fee alerts</small>
+                    </div>
+                    <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-3 py-1.5 rounded-pill">
+                        {{ announcements.count }} Notices Published
+                    </span>
+                </div>
+
+                <div class="space-y-3">
+                    {% for ann in announcements %}
+                    <div class="p-4 rounded-3 border mb-3 {% if ann.priority == 'URGENT' %}border-danger bg-danger bg-opacity-10{% elif ann.priority == 'IMPORTANT' %}border-warning bg-warning bg-opacity-10{% else %}bg-light{% endif %}">
+                        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="badge 
+                                    {% if ann.priority == 'URGENT' %}bg-danger
+                                    {% elif ann.priority == 'IMPORTANT' %}bg-warning text-dark
+                                    {% else %}bg-success{% endif %} py-1 px-2.5 rounded-pill fw-bold">
+                                    {{ ann.get_priority_display }}
+                                </span>
+                                <span class="badge bg-secondary py-1 px-2.5 rounded-pill">
+                                    {{ ann.get_category_display }}
+                                </span>
+                            </div>
+                            <div class="d-flex align-items-center gap-2">
+                                <small class="text-muted">
+                                    <i class="fa-regular fa-clock me-1"></i>{{ ann.published_date|date:"F d, Y" }}
+                                </small>
+                                {% if is_admin %}
+                                <a href="{% url 'announcement_delete' ann.pk %}" class="btn btn-outline-danger btn-sm py-0 px-2" title="Delete Announcement" onclick="return confirm('Are you sure you want to delete this notice?');">
+                                    <i class="fa-solid fa-trash"></i>
+                                </a>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <h5 class="fw-bold text-dark mb-2">{{ ann.title }}</h5>
+                        <p class="text-dark mb-0 small whitespace-pre-line leading-relaxed">{{ ann.content }}</p>
+                    </div>
+                    {% empty %}
+                    <div class="text-center py-5 text-muted">
+                        <i class="fa-solid fa-bullhorn fs-2 mb-2 d-block"></i>
+                        No announcements posted at this time.
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        {% if is_admin %}
+        <!-- Publish New Notice Form Column (Admin only) -->
+        <div class="col-lg-5">
+            <div class="mess-card p-4">
+                <h5 class="fw-bold mb-1 text-dark">
+                    <i class="fa-solid fa-pen-nib text-success me-1"></i> Post New Announcement
+                </h5>
+                <small class="text-muted d-block mb-3 border-bottom pb-2">Publish an update to the resident mess notice board</small>
+
+                <form method="POST">
+                    {% csrf_token %}
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Heading / Title *</label>
+                        {{ form.title }}
+                    </div>
+
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label class="form-label small fw-bold">Category *</label>
+                            {{ form.category }}
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small fw-bold">Priority *</label>
+                            {{ form.priority }}
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Notice Content *</label>
+                        {{ form.content }}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Publish Date *</label>
+                        {{ form.published_date }}
+                    </div>
+
+                    <div class="form-check mb-4">
+                        {{ form.is_active }}
+                        <label class="form-check-label small fw-semibold" for="{{ form.is_active.id_for_label }}">
+                            Active Announcement (Visible to residents)
+                        </label>
+                    </div>
+
+                    <button type="submit" class="btn btn-success fw-semibold w-100 py-2 shadow-sm">
+                        <i class="fa-solid fa-bullhorn me-1"></i> Broadcast Announcement
+                    </button>
+                </form>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+</div>
+{% endblock %}

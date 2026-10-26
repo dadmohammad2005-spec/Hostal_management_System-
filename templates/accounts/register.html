@@ -1,0 +1,195 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Student Registration & Hostel Admission - Ali Hall Hostel | IUB{% endblock %}
+
+{% block auth_content %}
+<div class="w-full max-w-3xl bg-white rounded-3xl shadow-2xl border border-slate-100 overflow-hidden my-6">
+    <div class="px-8 pt-8 pb-6 border-b border-slate-100 bg-gradient-to-r from-slate-50 via-white to-slate-50 flex items-center justify-between">
+        <div class="flex items-center space-x-4">
+            <div class="w-16 h-16 rounded-2xl bg-white p-1 border border-slate-200/80 shadow-md flex items-center justify-center shrink-0">
+                <img src="{% static 'images/iub_logo.png' %}" alt="IUB Official Logo" class="w-full h-full object-contain">
+            </div>
+            <div>
+                <span class="text-xs font-bold text-emerald-700 uppercase tracking-wider block">The Islamia University of Bahawalpur</span>
+                <h2 class="text-2xl font-extrabold text-slate-900 tracking-tight">Ali Hall Resident Registration</h2>
+                <p class="text-xs text-slate-500 mt-0.5">Baghdad-ul-Jadeed Campus &bull; Complete profile and upload admission documents</p>
+            </div>
+        </div>
+    </div>
+
+    <form method="POST" enctype="multipart/form-data" class="p-8 space-y-6">
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+        <div class="p-4 bg-rose-50 border border-rose-200 rounded-xl text-sm text-rose-700">
+            {% for error in form.non_field_errors %}
+            <p>{{ error }}</p>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Photograph Live Preview Section -->
+        <div class="p-4 bg-slate-50 rounded-2xl border border-slate-200 flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-6">
+            <div class="relative">
+                <img id="avatar-preview-img" src="https://ui-avatars.com/api/?name=Student&background=10b981&color=fff&size=128" 
+                    alt="Preview" class="w-24 h-24 rounded-full object-cover border-4 border-white shadow-md">
+                <span class="absolute bottom-1 right-1 w-6 h-6 rounded-full bg-emerald-600 text-white flex items-center justify-center text-xs shadow-sm">
+                    <i class="fa-solid fa-camera"></i>
+                </span>
+            </div>
+            <div class="flex-1 text-center sm:text-left">
+                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Student Profile Photograph *</label>
+                <p class="text-xs text-slate-500 mb-2">Upload a clear passport-size photo (JPEG or PNG, max 5MB). Live preview shown on left.</p>
+                <input type="file" name="profile_pic" id="profile_pic_input" accept="image/*"
+                    class="block w-full text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100">
+                {% if form.profile_pic.errors %}<p class="text-rose-500 text-xs mt-1">{{ form.profile_pic.errors.0 }}</p>{% endif %}
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="md:col-span-2">
+                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100 pb-1.5 mb-2">1. Identity & Academic Details</h3>
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Username *</label>
+                {{ form.username }}
+                {% if form.username.errors %}<p class="text-rose-500 text-xs mt-1">{{ form.username.errors.0 }}</p>{% endif %}
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">University Reg / Roll No *</label>
+                {{ form.registration_no }}
+                {% if form.registration_no.errors %}<p class="text-rose-500 text-xs mt-1">{{ form.registration_no.errors.0 }}</p>{% endif %}
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Department *</label>
+                {{ form.department }}
+                {% if form.department.errors %}<p class="text-rose-500 text-xs mt-1">{{ form.department.errors.0 }}</p>{% endif %}
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Current Semester *</label>
+                {{ form.semester }}
+                {% if form.semester.errors %}<p class="text-rose-500 text-xs mt-1">{{ form.semester.errors.0 }}</p>{% endif %}
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">First Name *</label>
+                {{ form.first_name }}
+                {% if form.first_name.errors %}<p class="text-rose-500 text-xs mt-1">{{ form.first_name.errors.0 }}</p>{% endif %}
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Last Name *</label>
+                {{ form.last_name }}
+                {% if form.last_name.errors %}<p class="text-rose-500 text-xs mt-1">{{ form.last_name.errors.0 }}</p>{% endif %}
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">CNIC / Form-B No *</label>
+                {{ form.cnic_or_id }}
+                {% if form.cnic_or_id.errors %}<p class="text-rose-500 text-xs mt-1">{{ form.cnic_or_id.errors.0 }}</p>{% endif %}
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Gender *</label>
+                {{ form.gender }}
+                {% if form.gender.errors %}<p class="text-rose-500 text-xs mt-1">{{ form.gender.errors.0 }}</p>{% endif %}
+            </div>
+
+            <div class="md:col-span-2 pt-2">
+                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100 pb-1.5 mb-2">2. Contact & Emergency Details</h3>
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Email Address *</label>
+                {{ form.email }}
+                {% if form.email.errors %}<p class="text-rose-500 text-xs mt-1">{{ form.email.errors.0 }}</p>{% endif %}
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Mobile Phone *</label>
+                {{ form.phone_number }}
+                {% if form.phone_number.errors %}<p class="text-rose-500 text-xs mt-1">{{ form.phone_number.errors.0 }}</p>{% endif %}
+            </div>
+
+            <div class="md:col-span-2">
+                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Emergency Contact (Name & Phone) *</label>
+                {{ form.emergency_contact }}
+                {% if form.emergency_contact.errors %}<p class="text-rose-500 text-xs mt-1">{{ form.emergency_contact.errors.0 }}</p>{% endif %}
+            </div>
+
+            <div class="md:col-span-2">
+                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Permanent Home Address</label>
+                {{ form.address }}
+                {% if form.address.errors %}<p class="text-rose-500 text-xs mt-1">{{ form.address.errors.0 }}</p>{% endif %}
+            </div>
+
+            <div class="md:col-span-2 pt-2">
+                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100 pb-1.5 mb-2">3. Required Document Attachments</h3>
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">CNIC / Form-B Copy</label>
+                {{ form.document_cnic }}
+                {% if form.document_cnic.errors %}<p class="text-rose-500 text-xs mt-1">{{ form.document_cnic.errors.0 }}</p>{% endif %}
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Admission / Paid Fee Slip</label>
+                {{ form.document_admission_slip }}
+                {% if form.document_admission_slip.errors %}<p class="text-rose-500 text-xs mt-1">{{ form.document_admission_slip.errors.0 }}</p>{% endif %}
+            </div>
+
+            <div class="md:col-span-2 pt-2">
+                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100 pb-1.5 mb-2">4. Portal Security</h3>
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Password *</label>
+                {{ form.password }}
+                {% if form.password.errors %}<p class="text-rose-500 text-xs mt-1">{{ form.password.errors.0 }}</p>{% endif %}
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Confirm Password *</label>
+                {{ form.confirm_password }}
+                {% if form.confirm_password.errors %}<p class="text-rose-500 text-xs mt-1">{{ form.confirm_password.errors.0 }}</p>{% endif %}
+            </div>
+        </div>
+
+        <button type="submit" class="w-full py-4 px-4 bg-emerald-700 hover:bg-emerald-800 text-white font-bold rounded-2xl shadow-xl shadow-emerald-700/25 transition-all flex items-center justify-center space-x-2">
+            <span>Submit Registration & Hostel Application</span>
+            <i class="fa-solid fa-arrow-right text-sm"></i>
+        </button>
+    </form>
+
+    <div class="px-8 py-4 bg-slate-50 border-t border-slate-100 text-center">
+        <p class="text-sm text-slate-600">
+            Already have an account? 
+            <a href="{% url 'login' %}" class="font-bold text-emerald-700 hover:text-emerald-800">Sign In here</a>
+        </p>
+    </div>
+</div>
+
+<script>
+    // Live Client-side Photograph Preview
+    const fileInput = document.getElementById('profile_pic_input');
+    const previewImg = document.getElementById('avatar-preview-img');
+    if (fileInput && previewImg) {
+        fileInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(evt) {
+                    previewImg.src = evt.target.result;
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+    }
+</script>
+{% endblock %}

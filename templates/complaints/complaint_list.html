@@ -1,0 +1,228 @@
+{% extends 'base.html' %}
+
+{% block title %}Maintenance Complaints - Smart Hostel{% endblock %}
+{% block header_title %}Hostel Maintenance & Incident Tickets{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+
+    <!-- Top Card / Header Toolbar -->
+    <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+                <h2 class="text-lg font-bold text-slate-900">Maintenance & Incident Tickets</h2>
+                <p class="text-xs text-slate-500">11 service categories: Electrical, Water, Bathroom, Cleanliness, Furniture, Internet, and more</p>
+            </div>
+            {% if user.is_student_user %}
+            <a href="{% url 'complaint_create' %}" class="inline-flex items-center gap-2 px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-xl shadow-sm transition-colors">
+                <i class="fa-solid fa-plus"></i> Report Issue / Lodge Ticket
+            </a>
+            {% endif %}
+        </div>
+
+        <!-- Filter Bar -->
+        <form method="GET" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 pt-3 border-t border-slate-100 text-xs">
+            <div class="relative lg:col-span-1">
+                <input type="text" name="q" value="{{ search_query }}" placeholder="Search ref, room, title..."
+                       class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500">
+            </div>
+
+            <div>
+                <select name="category" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500">
+                    <option value="">All 11 Categories</option>
+                    {% for code, label in category_choices %}
+                    <option value="{{ code }}" {% if category_filter == code %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div>
+                <select name="status" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500">
+                    <option value="">All Statuses</option>
+                    {% for code, label in status_choices %}
+                    <option value="{{ code }}" {% if status_filter == code %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div>
+                <select name="priority" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500">
+                    <option value="">All Priorities</option>
+                    {% for code, label in priority_choices %}
+                    <option value="{{ code }}" {% if priority_filter == code %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <button type="submit" class="flex-1 py-2 bg-slate-800 hover:bg-slate-900 text-white font-semibold rounded-lg transition-colors">
+                    Filter
+                </button>
+                {% if search_query or category_filter or status_filter or priority_filter %}
+                <a href="{% url 'complaint_list' %}" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg font-medium text-center">
+                    Reset
+                </a>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+
+    <!-- Complaints Table -->
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+                <thead class="bg-slate-50 text-slate-500 uppercase tracking-wider border-b border-slate-200 font-semibold">
+                    <tr>
+                        <th class="py-3 px-4">Ticket Ref</th>
+                        {% if not user.is_student_user %}
+                        <th class="py-3 px-4">Resident</th>
+                        {% endif %}
+                        <th class="py-3 px-4">Category & Room</th>
+                        <th class="py-3 px-4">Subject & Description</th>
+                        <th class="py-3 px-4">Priority</th>
+                        <th class="py-3 px-4">Status</th>
+                        <th class="py-3 px-4">Date</th>
+                        <th class="py-3 px-4 text-right">Action</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 text-slate-700">
+                    {% for c in page_obj %}
+                    <tr class="hover:bg-slate-50/80 transition-colors">
+                        <!-- Ref -->
+                        <td class="py-3.5 px-4 font-mono font-bold text-slate-900">
+                            {{ c.complaint_ref|default:c.ticket_number }}
+                        </td>
+
+                        <!-- Resident (if staff) -->
+                        {% if not user.is_student_user %}
+                        <td class="py-3.5 px-4">
+                            <div class="flex items-center gap-2">
+                                {% if c.student.profile_pic %}
+                                <img src="{{ c.student.profile_pic.url }}" alt="{{ c.student.username }}" class="w-7 h-7 rounded-full object-cover">
+                                {% else %}
+                                <div class="w-7 h-7 rounded-full bg-slate-200 text-slate-700 font-bold flex items-center justify-center text-[10px]">
+                                    {{ c.student.initials }}
+                                </div>
+                                {% endif %}
+                                <div>
+                                    <strong class="text-slate-900 block font-semibold">{{ c.student.get_full_name|default:c.student.username }}</strong>
+                                    <span class="text-slate-400 font-mono text-[10px]">{{ c.student.registration_no|default:c.student.username }}</span>
+                                </div>
+                            </div>
+                        </td>
+                        {% endif %}
+
+                        <!-- Category & Room -->
+                        <td class="py-3.5 px-4">
+                            <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-slate-100 text-slate-700 border border-slate-200 block w-fit">
+                                {{ c.get_category_display }}
+                            </span>
+                            <span class="text-slate-500 font-mono text-[10px] mt-0.5 block">
+                                {% if c.room_number %}Room {{ c.room_number }}{% else %}General{% endif %}
+                            </span>
+                        </td>
+
+                        <!-- Subject & Description -->
+                        <td class="py-3.5 px-4 max-w-xs">
+                            <strong class="text-slate-900 block truncate font-semibold">{{ c.title }}</strong>
+                            <p class="text-slate-500 text-[11px] truncate mt-0.5">{{ c.description }}</p>
+                        </td>
+
+                        <!-- Priority -->
+                        <td class="py-3.5 px-4">
+                            {% if c.priority == 'URGENT' %}
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-800 animate-pulse">
+                                <i class="fa-solid fa-triangle-exclamation mr-1"></i> Urgent
+                            </span>
+                            {% elif c.priority == 'HIGH' %}
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800">
+                                High
+                            </span>
+                            {% elif c.priority == 'MEDIUM' %}
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-100 text-blue-800">
+                                Medium
+                            </span>
+                            {% else %}
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-slate-100 text-slate-600">
+                                Low
+                            </span>
+                            {% endif %}
+                        </td>
+
+                        <!-- Status -->
+                        <td class="py-3.5 px-4">
+                            {% if c.status == 'RESOLVED' %}
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800">
+                                Resolved
+                            </span>
+                            {% elif c.status == 'IN_PROGRESS' %}
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-blue-100 text-blue-800">
+                                In Progress
+                            </span>
+                            {% elif c.status == 'UNDER_REVIEW' %}
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-indigo-100 text-indigo-800">
+                                Under Review
+                            </span>
+                            {% elif c.status == 'REJECTED' %}
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-rose-100 text-rose-800">
+                                Rejected
+                            </span>
+                            {% else %}
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800">
+                                Submitted
+                            </span>
+                            {% endif %}
+                        </td>
+
+                        <!-- Date -->
+                        <td class="py-3.5 px-4 text-slate-500 font-mono text-[11px]">
+                            {{ c.created_at|date:"M d, Y" }}
+                        </td>
+
+                        <!-- Action -->
+                        <td class="py-3.5 px-4 text-right">
+                            <a href="{% url 'complaint_detail' c.pk %}" class="px-3 py-1 bg-slate-800 hover:bg-slate-900 text-white rounded-lg text-xs font-semibold shadow-xs transition-colors">
+                                View
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="py-12 text-center text-slate-400">
+                            <i class="fa-solid fa-clipboard-check text-3xl mb-2 text-slate-300 block"></i>
+                            No maintenance complaints found.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Pagination -->
+    {% if page_obj.has_other_pages %}
+    <div class="flex items-center justify-between bg-white px-5 py-3 rounded-2xl border border-slate-200 text-xs">
+        <div>
+            <span class="text-slate-500">
+                Page <strong class="text-slate-800">{{ page_obj.number }}</strong> of <strong class="text-slate-800">{{ page_obj.paginator.num_pages }}</strong>
+            </span>
+        </div>
+        <div class="flex items-center gap-1">
+            {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}&status={{ status_filter }}&category={{ category_filter }}&priority={{ priority_filter }}&q={{ search_query }}"
+               class="px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-700">
+                &larr; Previous
+            </a>
+            {% endif %}
+            {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}&status={{ status_filter }}&category={{ category_filter }}&priority={{ priority_filter }}&q={{ search_query }}"
+               class="px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-700">
+                Next &rarr;
+            </a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}

@@ -1,0 +1,399 @@
+{% extends 'mess/base_mess.html' %}
+
+{% block title %}Executive Mess Dashboard - Ali Hall Hostel | IUB{% endblock %}
+{% block header_title %}Mess Operations & Executive Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+
+    <!-- Quick Action Bar -->
+    <div class="mess-card p-3 mb-4 d-flex flex-wrap align-items-center justify-content-between gap-3">
+        <div class="d-flex align-items-center gap-2">
+            <span class="small fw-bold text-muted me-1">Fast Actions:</span>
+            <a href="{% url 'student_create' %}" class="btn btn-success btn-sm fw-semibold rounded-pill px-3 shadow-sm">
+                <i class="fa-solid fa-user-plus me-1"></i> Add Student
+            </a>
+            <a href="{% url 'attendance_mark' %}" class="btn btn-primary btn-sm fw-semibold rounded-pill px-3 shadow-sm">
+                <i class="fa-solid fa-clipboard-check me-1"></i> Mark Attendance
+            </a>
+            <a href="{% url 'fee_payment_create' %}" class="btn btn-outline-success btn-sm fw-semibold rounded-pill px-3">
+                <i class="fa-solid fa-cash-register me-1"></i> Record Payment
+            </a>
+            <a href="{% url 'menu_create' %}" class="btn btn-outline-secondary btn-sm fw-semibold rounded-pill px-3">
+                <i class="fa-solid fa-plus me-1"></i> New Meal Menu
+            </a>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <span class="badge bg-light text-dark border px-3 py-2 rounded-pill small">
+                <i class="fa-regular fa-calendar me-1 text-success"></i> Today: {{ today|date:"l, F d, Y" }}
+            </span>
+        </div>
+    </div>
+
+    <!-- Metric Stat Cards (6 Key Indicators) -->
+    <div class="row g-3 mb-4">
+        <!-- 1. Registered Students -->
+        <div class="col-xl-2 col-md-4 col-sm-6">
+            <div class="mess-card p-3 h-100 border-start border-4 border-success">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <span class="text-muted text-uppercase fw-bold" style="font-size: 0.7rem;">Total Students</span>
+                    <div class="rounded-circle bg-success bg-opacity-10 text-success d-flex align-items-center justify-center" style="width: 32px; height: 32px;">
+                        <i class="fa-solid fa-user-graduate"></i>
+                    </div>
+                </div>
+                <h3 class="fw-bold mb-0 text-dark">{{ total_students }}</h3>
+                <small class="text-success fw-semibold" style="font-size: 0.72rem;">
+                    <i class="fa-solid fa-check-circle me-1"></i>{{ active_mess_members }} Active Members
+                </small>
+            </div>
+        </div>
+
+        <!-- 2. Today's Breakfast Attendance -->
+        <div class="col-xl-2 col-md-4 col-sm-6">
+            <div class="mess-card p-3 h-100 border-start border-4 border-warning">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <span class="text-muted text-uppercase fw-bold" style="font-size: 0.7rem;">Breakfast</span>
+                    <div class="rounded-circle bg-warning bg-opacity-10 text-warning d-flex align-items-center justify-center" style="width: 32px; height: 32px;">
+                        <i class="fa-solid fa-mug-hot"></i>
+                    </div>
+                </div>
+                <h3 class="fw-bold mb-0 text-dark">{{ attendance_breakfast }}</h3>
+                <small class="text-muted" style="font-size: 0.72rem;">Students Served</small>
+            </div>
+        </div>
+
+        <!-- 3. Today's Lunch Attendance -->
+        <div class="col-xl-2 col-md-4 col-sm-6">
+            <div class="mess-card p-3 h-100 border-start border-4 border-primary">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <span class="text-muted text-uppercase fw-bold" style="font-size: 0.7rem;">Lunch</span>
+                    <div class="rounded-circle bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-center" style="width: 32px; height: 32px;">
+                        <i class="fa-solid fa-bowl-food"></i>
+                    </div>
+                </div>
+                <h3 class="fw-bold mb-0 text-dark">{{ attendance_lunch }}</h3>
+                <small class="text-muted" style="font-size: 0.72rem;">Students Served</small>
+            </div>
+        </div>
+
+        <!-- 4. Today's Dinner Attendance -->
+        <div class="col-xl-2 col-md-4 col-sm-6">
+            <div class="mess-card p-3 h-100 border-start border-4 border-info">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <span class="text-muted text-uppercase fw-bold" style="font-size: 0.7rem;">Dinner</span>
+                    <div class="rounded-circle bg-info bg-opacity-10 text-info d-flex align-items-center justify-center" style="width: 32px; height: 32px;">
+                        <i class="fa-solid fa-utensils"></i>
+                    </div>
+                </div>
+                <h3 class="fw-bold mb-0 text-dark">{{ attendance_dinner }}</h3>
+                <small class="text-muted" style="font-size: 0.72rem;">Students Served</small>
+            </div>
+        </div>
+
+        <!-- 5. Monthly Fees Collected -->
+        <div class="col-xl-2 col-md-4 col-sm-6">
+            <div class="mess-card p-3 h-100 border-start border-4 border-success">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <span class="text-muted text-uppercase fw-bold" style="font-size: 0.7rem;">Fees Collected</span>
+                    <div class="rounded-circle bg-success bg-opacity-10 text-success d-flex align-items-center justify-center" style="width: 32px; height: 32px;">
+                        <i class="fa-solid fa-money-bill-wave"></i>
+                    </div>
+                </div>
+                <h4 class="fw-bold mb-0 text-success">Rs. {{ total_collected|floatformat:0 }}</h4>
+                <small class="text-muted" style="font-size: 0.72rem;">In {{ current_month_str }}</small>
+            </div>
+        </div>
+
+        <!-- 6. Pending Fees -->
+        <div class="col-xl-2 col-md-4 col-sm-6">
+            <div class="mess-card p-3 h-100 border-start border-4 border-danger">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <span class="text-muted text-uppercase fw-bold" style="font-size: 0.7rem;">Pending Fees</span>
+                    <div class="rounded-circle bg-danger bg-opacity-10 text-danger d-flex align-items-center justify-center" style="width: 32px; height: 32px;">
+                        <i class="fa-solid fa-receipt"></i>
+                    </div>
+                </div>
+                <h4 class="fw-bold mb-0 text-danger">Rs. {{ total_pending|floatformat:0 }}</h4>
+                <small class="text-danger fw-semibold" style="font-size: 0.72rem;">
+                    <a href="{% url 'fee_list' %}?status=UNPAID" class="text-danger text-decoration-none">View Invoices &rarr;</a>
+                </small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Today's Meal Showcase (4 Meal Cards) -->
+    <div class="mess-card p-4 mb-4">
+        <div class="d-flex flex-wrap align-items-center justify-content-between mb-3 border-bottom pb-2">
+            <div>
+                <h6 class="fw-bold mb-0 text-dark d-flex align-items-center gap-2">
+                    <i class="fa-solid fa-kitchen-set text-success"></i> Today's Official Dining Menu
+                </h6>
+                <small class="text-muted">{{ today|date:"l, F d, Y" }} &bull; Ali Hall Central Mess Dining Hall</small>
+            </div>
+            <a href="{% url 'menu_weekly' %}" class="btn btn-outline-success btn-sm rounded-pill px-3">
+                <i class="fa-solid fa-calendar-week me-1"></i> View Full 7-Day Timetable
+            </a>
+        </div>
+
+        <div class="row g-3">
+            <!-- Breakfast -->
+            <div class="col-lg-3 col-md-6">
+                <div class="p-3 rounded-3 border bg-light h-100 d-flex flex-col justify-content-between">
+                    <div>
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="badge bg-warning bg-opacity-25 text-warning border border-warning border-opacity-50 fw-bold px-2 py-1">
+                                <i class="fa-solid fa-mug-hot me-1"></i> Breakfast
+                            </span>
+                            <small class="text-muted fw-semibold" style="font-size: 0.75rem;">
+                                {{ breakfast_menu.serving_time|default:"7:30 AM - 9:00 AM" }}
+                            </small>
+                        </div>
+                        <h6 class="fw-bold text-dark mb-1">
+                            {{ breakfast_menu.menu_items|default:"Paratha, Fried Egg / Omelet, Karak Chai" }}
+                        </h6>
+                        {% if breakfast_menu.special_instructions %}
+                        <p class="text-muted small mb-0 fst-italic">Note: {{ breakfast_menu.special_instructions }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lunch -->
+            <div class="col-lg-3 col-md-6">
+                <div class="p-3 rounded-3 border bg-light h-100 d-flex flex-col justify-content-between">
+                    <div>
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="badge bg-success bg-opacity-25 text-success border border-success border-opacity-50 fw-bold px-2 py-1">
+                                <i class="fa-solid fa-bowl-food me-1"></i> Lunch
+                            </span>
+                            <small class="text-muted fw-semibold" style="font-size: 0.75rem;">
+                                {{ lunch_menu.serving_time|default:"12:30 PM - 2:30 PM" }}
+                            </small>
+                        </div>
+                        <h6 class="fw-bold text-dark mb-1">
+                            {{ lunch_menu.menu_items|default:"Daal Chawal, Fresh Salad, Mint Raita, Achaar" }}
+                        </h6>
+                        {% if lunch_menu.special_instructions %}
+                        <p class="text-muted small mb-0 fst-italic">Note: {{ lunch_menu.special_instructions }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Evening Tea -->
+            <div class="col-lg-3 col-md-6">
+                <div class="p-3 rounded-3 border bg-light h-100 d-flex flex-col justify-content-between">
+                    <div>
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="badge bg-secondary bg-opacity-25 text-dark border fw-bold px-2 py-1">
+                                <i class="fa-solid fa-cookie-bite me-1"></i> Evening Tea
+                            </span>
+                            <small class="text-muted fw-semibold" style="font-size: 0.75rem;">
+                                {{ evening_tea_menu.serving_time|default:"5:00 PM - 6:00 PM" }}
+                            </small>
+                        </div>
+                        <h6 class="fw-bold text-dark mb-1">
+                            {{ evening_tea_menu.menu_items|default:"Hot Tea & Bakery Biscuits / Samosas" }}
+                        </h6>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dinner -->
+            <div class="col-lg-3 col-md-6">
+                <div class="p-3 rounded-3 border bg-light h-100 d-flex flex-col justify-content-between">
+                    <div>
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="badge bg-info bg-opacity-25 text-info border border-info border-opacity-50 fw-bold px-2 py-1">
+                                <i class="fa-solid fa-utensils me-1"></i> Dinner
+                            </span>
+                            <small class="text-muted fw-semibold" style="font-size: 0.75rem;">
+                                {{ dinner_menu.serving_time|default:"7:30 PM - 9:30 PM" }}
+                            </small>
+                        </div>
+                        <h6 class="fw-bold text-dark mb-1">
+                            {{ dinner_menu.menu_items|default:"Chicken Karahi / Daal, Tandoori Roti, Salad" }}
+                        </h6>
+                        {% if dinner_menu.special_instructions %}
+                        <p class="text-muted small mb-0 fst-italic">Note: {{ dinner_menu.special_instructions }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chart Row: Monthly Income vs Expenses & Notices -->
+    <div class="row g-4 mb-4">
+        <!-- Monthly Financial Chart (Chart.js) -->
+        <div class="col-lg-8">
+            <div class="mess-card p-4 h-100">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <div>
+                        <h6 class="fw-bold mb-0 text-dark">
+                            <i class="fa-solid fa-chart-column text-success me-1"></i> Mess Income vs Expenses (Last 6 Months)
+                        </h6>
+                        <small class="text-muted">Fee collections compared against kitchen & grocery expenses</small>
+                    </div>
+                    <span class="badge bg-light text-dark border">PKR (Rs.)</span>
+                </div>
+                <div style="height: 280px; position: relative;">
+                    <canvas id="incomeExpenseChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Latest Notices & Announcements -->
+        <div class="col-lg-4">
+            <div class="mess-card p-4 h-100">
+                <div class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2">
+                    <h6 class="fw-bold mb-0 text-dark">
+                        <i class="fa-solid fa-bullhorn text-warning me-1"></i> Latest Notices
+                    </h6>
+                    <a href="{% url 'announcement_list' %}" class="small text-success text-decoration-none fw-semibold">View All</a>
+                </div>
+
+                {% if latest_announcements %}
+                <div class="list-group list-group-flush">
+                    {% for ann in latest_announcements %}
+                    <div class="list-group-item px-0 py-2 border-0 border-bottom">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="badge 
+                                {% if ann.priority == 'URGENT' %}bg-danger
+                                {% elif ann.priority == 'IMPORTANT' %}bg-warning text-dark
+                                {% else %}bg-success{% endif %} py-0 px-2" style="font-size: 0.65rem;">
+                                {{ ann.get_priority_display }}
+                            </span>
+                            <small class="text-muted" style="font-size: 0.7rem;">{{ ann.published_date|date:"M d" }}</small>
+                        </div>
+                        <h6 class="mb-1 text-dark small fw-bold">{{ ann.title }}</h6>
+                        <p class="text-muted small mb-0 text-truncate">{{ ann.content }}</p>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-muted small text-center py-4">No active announcements currently posted.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Student Registrations Table -->
+    <div class="mess-card p-4">
+        <div class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2">
+            <div>
+                <h6 class="fw-bold mb-0 text-dark">
+                    <i class="fa-solid fa-users text-primary me-1"></i> Recent Student Registrations
+                </h6>
+                <small class="text-muted">Newly enrolled student residents in Ali Hall mess</small>
+            </div>
+            <a href="{% url 'student_list' %}" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+                Full Students Directory &rarr;
+            </a>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light text-muted small text-uppercase">
+                    <tr>
+                        <th>Student</th>
+                        <th>Roll Number</th>
+                        <th>Department & Sem</th>
+                        <th>Room No</th>
+                        <th>Monthly Fee</th>
+                        <th>Mess Status</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="small">
+                    {% for student in recent_students %}
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                {% if student.profile_pic %}
+                                <img src="{{ student.profile_pic.url }}" alt="{{ student.full_name }}" class="student-avatar">
+                                {% else %}
+                                <div class="avatar-initials">{{ student.initials }}</div>
+                                {% endif %}
+                                <div>
+                                    <span class="fw-bold text-dark d-block">{{ student.full_name }}</span>
+                                    <small class="text-muted">{{ student.phone_number }}</small>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="font-monospace fw-semibold">{{ student.student_id }}</td>
+                        <td>{{ student.department }} ({{ student.semester }})</td>
+                        <td><span class="badge bg-light text-dark border">{{ student.hostel_room_no }}</span></td>
+                        <td class="fw-bold text-success">Rs. {{ student.monthly_mess_fee }}</td>
+                        <td>
+                            <span class="badge 
+                                {% if student.mess_status == 'ACTIVE' %}badge-status-active
+                                {% elif student.mess_status == 'SUSPENDED' %}badge-status-suspended
+                                {% else %}badge-status-inactive{% endif %} px-2 py-1 rounded-pill">
+                                {{ student.get_mess_status_display }}
+                            </span>
+                        </td>
+                        <td class="text-end">
+                            <a href="{% url 'student_detail' student.pk %}" class="btn btn-light btn-sm text-primary">
+                                <i class="fa-solid fa-eye me-1"></i> Profile
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center text-muted py-4">No student records found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Monthly Financial Chart (Chart.js)
+    const ctx = document.getElementById('incomeExpenseChart').getContext('2d');
+    const months = JSON.parse('{{ chart_months_json|escapejs }}');
+    const incomeData = JSON.parse('{{ chart_income_json|escapejs }}');
+    const expenseData = JSON.parse('{{ chart_expense_json|escapejs }}');
+
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: months,
+            datasets: [
+                {
+                    label: 'Fees Collected (Rs.)',
+                    data: incomeData,
+                    backgroundColor: '#16a34a',
+                    borderRadius: 6
+                },
+                {
+                    label: 'Mess Expenses (Rs.)',
+                    data: expenseData,
+                    backgroundColor: '#ef4444',
+                    borderRadius: 6
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'top' }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) { return 'Rs. ' + value.toLocaleString(); }
+                    }
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}

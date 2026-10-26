@@ -1,0 +1,28 @@
+{% extends 'mess/base_mess.html' %}
+
+{% block title %}Confirm Menu Deletion - Ali Hall Mess | IUB{% endblock %}
+{% block header_title %}Remove Meal Menu{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="mess-card p-4 text-center">
+            <div class="rounded-circle bg-danger bg-opacity-10 text-danger d-inline-flex align-items-center justify-center p-3 mb-3">
+                <i class="fa-solid fa-utensils fs-1"></i>
+            </div>
+            <h5 class="fw-bold text-dark">Delete {{ menu.get_meal_type_display }} Menu?</h5>
+            <p class="text-muted small">
+                Are you sure you want to delete the <strong>{{ menu.get_meal_type_display }}</strong> menu for <strong>{{ menu.date }}</strong> ({{ menu.menu_items }})?
+            </p>
+
+            <form method="POST" class="d-flex justify-content-center gap-3 mt-4">
+                {% csrf_token %}
+                <a href="{% url 'menu_weekly' %}" class="btn btn-light px-4">Cancel</a>
+                <button type="submit" class="btn btn-danger px-4 fw-semibold">
+                    <i class="fa-solid fa-trash me-1"></i> Confirm Delete
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
