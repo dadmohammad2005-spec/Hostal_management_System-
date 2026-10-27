@@ -109,7 +109,14 @@
                 </div>
                 <div>
                     <strong class="block text-emerald-950 font-bold">Payment Verified & Settled</strong>
-                    <span class="text-[11px]">Verified by {{ voucher.verified_by.get_full_name|default:voucher.verified_by.username }} (Warden Office) on {{ voucher.verified_at|date:"M d, Y" }}</span>
+                    <span class="text-[11px]">
+                        {% if voucher.verified_by %}
+                            Verified by {{ voucher.verified_by.get_full_name|default:voucher.verified_by.username }} (Warden Office)
+                        {% else %}
+                            Verified by Warden Office
+                        {% endif %}
+                        {% if voucher.verified_at %} on {{ voucher.verified_at|date:"M d, Y" }}{% endif %}
+                    </span>
                 </div>
             </div>
             <div class="text-right">
